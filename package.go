@@ -16,13 +16,13 @@ import (
 //  • guide (optional and deprecated; a carryover from EPUB 2)
 //  • bindings (optional)
 type Package struct {
-	XMLName    xml.Name  `xml:"http://www.idpf.org/2007/opf package"`
-	Version    string    `xml:"version,attr"` // EPUB 3s must declare "3.0"
-	LangAndDir           // Language & reading direction
-	Metadata   Metadata  `xml:"metadata"`                // Most of the metadata in a typical EPUB is associated with the publication as a whole.
-	Manifest   []Item    `xml:"manifest>item"`           // The manifest documents all of the individual resources that together constitute the EPUB
-	Spine      []ItemRef `xml:"spine>itemref"`           // The spine provides a default reading order by which those resources may be presented to a user
-	Bindings   []Link    `xml:"bindings>link,omitempty"` // Contain fallbacks that are more sophisticated than those provided by the HTML5 object element’s fallback mechanisms
+	XMLName    xml.Name   `xml:"http://www.idpf.org/2007/opf package"`
+	Version    string     `xml:"version,attr"` // EPUB 3s must declare "3.0"
+	LangAndDir            // Language & reading direction
+	Metadata   *Metadata  `xml:"metadata"`                // Most of the metadata in a typical EPUB is associated with the publication as a whole.
+	Manifest   []*Item    `xml:"manifest>item"`           // The manifest documents all of the individual resources that together constitute the EPUB
+	Spine      []*ItemRef `xml:"spine>itemref"`           // The spine provides a default reading order by which those resources may be presented to a user
+	Bindings   []*Link    `xml:"bindings>link,omitempty"` // Contain fallbacks that are more sophisticated than those provided by the HTML5 object element’s fallback mechanisms
 }
 
 // Most of the metadata in a typical EPUB is associated with the publication as a whole.
@@ -57,23 +57,23 @@ type Package struct {
 //    <dc:language id="pub-language">en</dc:language>
 //  </metadata>
 type Metadata struct {
-	DC          string         `xml:"xmlns:dc,attr"`            // Dublin Core namespace - "http://purl.org/dc/elements/1.1/"
-	Identifier  []MetaProperty `xml:"dc:identifier"`            // Identifier for the publication
-	Title       []MetaProperty `xml:"dc:title"`                 // Title for the publication
-	Language    []MetaProperty `xml:"dc:language"`              // Specifies the language of the publication’s content
-	Creator     []MetaProperty `xml:"dc:creator,omitempty"`     // The name of a person or organization with primary responsibility for creating the content, such as an author
-	Contributor []MetaProperty `xml:"dc:contributor,omitempty"` // Is used in the same way, but indicates a secondary level of involvement (for example, a translator or an illustrator)
-	Date        string         `xml:"dc:date,omitempty"`        // Provide the date of the EPUB publication in the standard W3C date and time format (2000-01-01T00:00:00Z)
-	Source      MetaProperty   `xml:"dc:source,omitempty"`      // Identifier of the source publication from which the EPUB was derived, such as the print version
-	Type        MetaProperty   `xml:"dc:type,omitempty"`        // Presents a bit of a curveball at the moment, because the IDPF has not yet defined values for it
-	Coverage    []MetaProperty `xml:"dc:coverage,omitempty"`
-	Description []MetaProperty `xml:"dc:description,omitempty"`
-	Format      []MetaProperty `xml:"dc:format,omitempty"`
-	Publisher   []MetaProperty `xml:"dc:publisher,omitempty"`
-	Relation    []MetaProperty `xml:"dc:relation,omitempty"`
-	Rights      []MetaProperty `xml:"dc:rights,omitempty"`
-	Subject     []MetaProperty `xml:"dc:Subject,omitempty"`
-	Meta        []Meta         `xml:"meta"` // The metadata element can also contain any number of those useful meta elements
+	DC          string          `xml:"xmlns:dc,attr"`            // Dublin Core namespace - "http://purl.org/dc/elements/1.1/"
+	Identifier  []*MetaProperty `xml:"dc:identifier"`            // Identifier for the publication
+	Title       []*MetaProperty `xml:"dc:title"`                 // Title for the publication
+	Language    []*MetaProperty `xml:"dc:language"`              // Specifies the language of the publication’s content
+	Creator     []*MetaProperty `xml:"dc:creator,omitempty"`     // The name of a person or organization with primary responsibility for creating the content, such as an author
+	Contributor []*MetaProperty `xml:"dc:contributor,omitempty"` // Is used in the same way, but indicates a secondary level of involvement (for example, a translator or an illustrator)
+	Date        string          `xml:"dc:date,omitempty"`        // Provide the date of the EPUB publication in the standard W3C date and time format (2000-01-01T00:00:00Z)
+	Source      *MetaProperty   `xml:"dc:source,omitempty"`      // Identifier of the source publication from which the EPUB was derived, such as the print version
+	Type        *MetaProperty   `xml:"dc:type,omitempty"`        // Presents a bit of a curveball at the moment, because the IDPF has not yet defined values for it
+	Coverage    []*MetaProperty `xml:"dc:coverage,omitempty"`
+	Description []*MetaProperty `xml:"dc:description,omitempty"`
+	Format      []*MetaProperty `xml:"dc:format,omitempty"`
+	Publisher   []*MetaProperty `xml:"dc:publisher,omitempty"`
+	Relation    []*MetaProperty `xml:"dc:relation,omitempty"`
+	Rights      []*MetaProperty `xml:"dc:rights,omitempty"`
+	Subject     []*MetaProperty `xml:"dc:Subject,omitempty"`
+	Meta        []*Meta         `xml:"meta"` // The metadata element can also contain any number of those useful meta elements
 }
 
 // Contains an identifier and value element for Metadata.
