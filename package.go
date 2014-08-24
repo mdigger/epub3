@@ -19,6 +19,7 @@ type Package struct {
 	XMLName    xml.Name   `xml:"http://www.idpf.org/2007/opf package"`
 	Version    string     `xml:"version,attr"` // EPUB 3s must declare "3.0"
 	LangAndDir            // Language & reading direction
+	UID        string     `xml:"unique-identifier,attr"`  // Unique identifier ID
 	Metadata   *Metadata  `xml:"metadata"`                // Most of the metadata in a typical EPUB is associated with the publication as a whole.
 	Manifest   []*Item    `xml:"manifest>item"`           // The manifest documents all of the individual resources that together constitute the EPUB
 	Spine      []*ItemRef `xml:"spine>itemref"`           // The spine provides a default reading order by which those resources may be presented to a user
