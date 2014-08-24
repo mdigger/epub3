@@ -84,6 +84,14 @@ type MetaProperty struct {
 	Value      string `xml:",chardata"`
 }
 
+func SimpleProperty(values ...string) []*MetaProperty {
+	result := make([]*MetaProperty, len(values))
+	for i, value := range values {
+		result[i] = &MetaProperty{Value: value}
+	}
+	return result
+}
+
 // The workhorse of EPUB 3 metadata is the meta element, which provides a simple, generic, and yet
 // surprisingly flexible and powerful mechanism for associating metadata of virtually unlimited
 // richness with the EPUB package and its contents. An EPUB can have any number of meta elements.

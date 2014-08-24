@@ -67,6 +67,7 @@ func Create(filename string, metadata *Metadata) (writer *Writer, err error) {
 	}
 	opf := &Package{
 		Version:  "3.0",
+		UID:      "uid",
 		Metadata: metadata,
 		Manifest: make([]*Item, 0, 10),
 		Spine:    make([]*ItemRef, 0, 10),
