@@ -120,12 +120,8 @@ func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
-	htmlFlags |= blackfriday.HTML_TOC
-	htmlFlags |= blackfriday.HTML_COMPLETE_PAGE
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
 	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
-	// htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
-	// htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT // Error in img tag
 	renderer := blackfriday.HtmlRenderer(htmlFlags, "", "")
 
 	// set up the parser
