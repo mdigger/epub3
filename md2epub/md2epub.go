@@ -15,6 +15,20 @@ import (
 
 func main() {
 	log.SetFlags(0)
+	htmlFlags := 0
+	htmlFlags |= blackfriday.HTML_USE_XHTML
+	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
+	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+	markdownRender := blackfriday.HtmlRenderer(htmlFlags, "", "")
+	extensions := 0
+	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= blackfriday.EXTENSION_TABLES
+	extensions |= blackfriday.EXTENSION_FENCED_CODE
+	extensions |= blackfriday.EXTENSION_AUTOLINK
+	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
+	extensions |= blackfriday.EXTENSION_HEADER_IDS
 	var (
 		sourcePath     string // Путь к файлам проекта
 		outputFilename string // Имя результирующего файла с публикацией
@@ -69,7 +83,7 @@ func main() {
 				log.Fatal(err)
 			}
 			// Преобразуем из Markdown в HTML
-			data = MarkdownCommon(data)
+			data = blackfriday.Markdown(data, markdownRender, extensions)
 			// Сохраняем результат прямо в метаданных под именем content.
 			// Предварительно "оборачиваем" в шаблонное представление HTML,
 			// чтобы он не декодировался.
@@ -114,28 +128,6 @@ func main() {
 	if err = filepath.Walk(".", walkFn); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func MarkdownCommon(input []byte) []byte {
-	// set up the HTML renderer
-	htmlFlags := 0
-	htmlFlags |= blackfriday.HTML_USE_XHTML
-	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
-	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
-	renderer := blackfriday.HtmlRenderer(htmlFlags, "", "")
-
-	// set up the parser
-	extensions := 0
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
-	extensions |= blackfriday.EXTENSION_HEADER_IDS
-
-	return blackfriday.Markdown(input, renderer, extensions)
 }
 
 const pageTemplateText = `<!DOCTYPE html>
