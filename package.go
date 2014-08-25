@@ -21,8 +21,7 @@ type Package struct {
 
 // The metadata element encapsulates Publication meta information.
 type Metadata struct {
-	XMLName xml.Name `xml:"metadata"`
-	DC      string   `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
+	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
 	// Requered Elements
 	Identifier []*IdElement     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
 	Title      []*IdLangElement `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
@@ -62,47 +61,42 @@ type IdLangElement struct {
 // The meta element provides a generic means of including package metadata, allowing the expression
 // of primary metadata about the package or content and refinement of that metadata.
 type Meta struct {
-	XMLName  xml.Name `xml:"meta"`
-	Property string   `xml:"property,attr"`          // A property. Refer to Vocabulary Association Mechanisms for more information.
-	Refines  string   `xml:"refines,attr,omitempty"` // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
-	Scheme   string   `xml:"scheme,attr,omitempty"`  // A property data type value indicating the source the value of the element is drawn from.
-	Id       string   `xml:"id,attr,omitempty"`      // The ID of this element, which must be unique within the document scope.
-	Value    string   `xml:",chardata"`
+	Property string `xml:"property,attr"`          // A property. Refer to Vocabulary Association Mechanisms for more information.
+	Refines  string `xml:"refines,attr,omitempty"` // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
+	Scheme   string `xml:"scheme,attr,omitempty"`  // A property data type value indicating the source the value of the element is drawn from.
+	Id       string `xml:"id,attr,omitempty"`      // The ID of this element, which must be unique within the document scope.
+	Value    string `xml:",chardata"`
 }
 
 // The link element is used to associate resources with a Publication, such as metadata records.
 type Link struct {
-	XMLName   xml.Name `xml:"link"`
-	Href      string   `xml:"href,attr"`                 // An absolute or relative IRI reference [RFC3987] to a resource.
-	Rel       string   `xml:"rel,attr"`                  // A space-separated list of property values.
-	Id        string   `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
-	Refines   string   `xml:"refines,attr,omitempty"`    // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
-	MediaType string   `xml:"media-type,attr,omitempty"` // A media type [RFC2046] that specifies the type and format of the resource referenced by this link.
+	Href      string `xml:"href,attr"`                 // An absolute or relative IRI reference [RFC3987] to a resource.
+	Rel       string `xml:"rel,attr"`                  // A space-separated list of property values.
+	Id        string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
+	Refines   string `xml:"refines,attr,omitempty"`    // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
+	MediaType string `xml:"media-type,attr,omitempty"` // A media type [RFC2046] that specifies the type and format of the resource referenced by this link.
 }
 
 // The manifest element provides an exhaustive list of the Publication Resources that constitute
 // the EPUB Publication, each represented by an item element.
 type Manifest struct {
-	XMLName xml.Name `xml:"manifest"`
-	Id      string   `xml:"id,attr,omitempty"` // The ID [XML] of this element, which must be unique within the document scope.
-	Items   []*Item  `xml:"item"`              // List of the Publication Resources
+	Id    string  `xml:"id,attr,omitempty"` // The ID [XML] of this element, which must be unique within the document scope.
+	Items []*Item `xml:"item"`              // List of the Publication Resources
 }
 
 // The item element represents a Publication Resource.
 type Item struct {
-	XMLName      xml.Name `xml:"item"`
-	Id           string   `xml:"id,attr"`                      // The ID [XML] of this element, which must be unique within the document scope.
-	Href         string   `xml:"href,attr"`                    // An IRI [RFC3987] specifying the location of the Publication Resource described by this item.
-	MediaType    string   `xml:"media-type,attr"`              // A media type [RFC2046] that specifies the type and format of the Publication Resource described by this item.
-	Fallback     string   `xml:"fallback,attr,omitempty"`      // An IDREF [XML] that identifies the fallback for a non-Core Media Type.
-	Properties   string   `xml:"properties,attr,omitempty"`    // A space-separated list of property values.
-	MediaOverlay string   `xml:"media-overlay,attr,omitempty"` // An IDREF [XML] that identifies the Media Overlay Document for the resource described by this item.
+	Id           string `xml:"id,attr"`                      // The ID [XML] of this element, which must be unique within the document scope.
+	Href         string `xml:"href,attr"`                    // An IRI [RFC3987] specifying the location of the Publication Resource described by this item.
+	MediaType    string `xml:"media-type,attr"`              // A media type [RFC2046] that specifies the type and format of the Publication Resource described by this item.
+	Fallback     string `xml:"fallback,attr,omitempty"`      // An IDREF [XML] that identifies the fallback for a non-Core Media Type.
+	Properties   string `xml:"properties,attr,omitempty"`    // A space-separated list of property values.
+	MediaOverlay string `xml:"media-overlay,attr,omitempty"` // An IDREF [XML] that identifies the Media Overlay Document for the resource described by this item.
 }
 
 // The spine element defines the default reading order of the EPUB Publication content by defining
 // an ordered list of manifest item references.
 type Spine struct {
-	XMLName       xml.Name   `xml:"spine"`
 	Id            string     `xml:"id,attr,omitempty"`                         // The ID [XML] of this element, which must be unique within the document scope.
 	Toc           string     `xml:"toc,attr,omitempty"`                        // An IDREF [XML] that identifies the manifest item that represents the superseded NCX.
 	PageDirection string     `xml:"page-progression-direction,attr,omitempty"` // The global direction in which the Publication content flows. Allowed values are ltr (left-to-right), rtl (right-to-left) and default.
@@ -113,23 +107,20 @@ type Spine struct {
 // (typically EPUB Content Documents). The order of the itemref elements defines the default
 // reading order of the Publication.
 type ItemRef struct {
-	XMLName    xml.Name `xml:"itemref"`
-	IdRef      string   `xml:"idref,attr"`                // An IDREF [XML] that identifies a manifest item.
-	Linear     string   `xml:"linear,attr,omitempty"`     // Specifies whether the referenced content is primary. The value of the attribute must be yes or no. The default value is yes.
-	Id         string   `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
-	Properties string   `xml:"properties,attr,omitempty"` // A space-separated list of property values.
+	IdRef      string `xml:"idref,attr"`                // An IDREF [XML] that identifies a manifest item.
+	Linear     string `xml:"linear,attr,omitempty"`     // Specifies whether the referenced content is primary. The value of the attribute must be yes or no. The default value is yes.
+	Id         string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
+	Properties string `xml:"properties,attr,omitempty"` // A space-separated list of property values.
 }
 
 // The bindings element defines a set of custom handlers for media types not supported by this
 // specification.
 type Bindings struct {
-	XMLName    xml.Name     `xml:"bindings"`
 	MediaTypes []*MediaType `xml:"mediaType"`
 }
 
 // The mediaType element associates a Foreign Resource media type with a handler XHTML Content Document.
 type MediaType struct {
-	XMLName   xml.Name `xml:"mediaType"`
-	MediaType string   `xml:"media-type,attr"` // A media type [RFC2046] that specifies the type and format of the resource to be handled.
-	Handler   string   `xml:"handler,attr"`    // An IDREF [XML] that identifies the manifest XHTML Content Document to be invoked to handle content of the type specified in this element
+	MediaType string `xml:"media-type,attr"` // A media type [RFC2046] that specifies the type and format of the resource to be handled.
+	Handler   string `xml:"handler,attr"`    // An IDREF [XML] that identifies the manifest XHTML Content Document to be invoked to handle content of the type specified in this element
 }
