@@ -23,35 +23,35 @@ type Package struct {
 type Metadata struct {
 	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
 	// Requered Elements
-	Identifier []*IdElement     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
-	Title      []*IdLangElement `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
-	Language   []*IdElement     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
+	Identifier []*MetadataElement     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
+	Title      []*MetadataLangElement `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
+	Language   []*MetadataElement     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
 	// DCMES Optional Elements
-	Creator     []*IdLangElement `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
-	Contributor []*IdLangElement `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
-	Date        *IdElement       `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
-	Source      *IdElement       `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
-	Type        *IdElement       `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
-	Coverage    []*IdLangElement `xml:"dc:coverage"`
-	Description []*IdLangElement `xml:"dc:description"`
-	Format      []*IdElement     `xml:"dc:format"`
-	Publisher   []*IdLangElement `xml:"dc:publisher"`
-	Relation    []*IdLangElement `xml:"dc:relation"`
-	Rights      []*IdLangElement `xml:"dc:rights"`
-	Subject     []*IdLangElement `xml:"dc:subject"`
+	Creator     []*MetadataLangElement `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
+	Contributor []*MetadataLangElement `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
+	Date        *MetadataElement       `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
+	Source      *MetadataElement       `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
+	Type        *MetadataElement       `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
+	Coverage    []*MetadataLangElement `xml:"dc:coverage"`
+	Description []*MetadataLangElement `xml:"dc:description"`
+	Format      []*MetadataElement     `xml:"dc:format"`
+	Publisher   []*MetadataLangElement `xml:"dc:publisher"`
+	Relation    []*MetadataLangElement `xml:"dc:relation"`
+	Rights      []*MetadataLangElement `xml:"dc:rights"`
+	Subject     []*MetadataLangElement `xml:"dc:subject"`
 	// Meta
 	Meta []*Meta `xml:"meta"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
 	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
 // Element with optional ID
-type IdElement struct {
+type MetadataElement struct {
 	Id    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
 	Value string `xml:",chardata"`
 }
 
 // Element with optional ID, xml:lang & dir
-type IdLangElement struct {
+type MetadataLangElement struct {
 	Id    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
 	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.

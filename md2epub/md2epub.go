@@ -35,24 +35,24 @@ func main() {
 	// Создаем описание публикации
 	meta := &epub.Metadata{
 		DC: "http://purl.org/dc/elements/1.1/",
-		Title: []*epub.IdLangElement{
-			&epub.IdLangElement{
+		Title: []*epub.MetadataLangElement{
+			&epub.MetadataLangElement{
 				Value: "Тестовая публикация",
 			},
 		},
-		Language: []*epub.IdElement{
-			&epub.IdElement{
+		Language: []*epub.MetadataElement{
+			&epub.MetadataElement{
 				Value: "ru",
 			},
 		},
-		Identifier: []*epub.IdElement{
-			&epub.IdElement{
+		Identifier: []*epub.MetadataElement{
+			&epub.MetadataElement{
 				Id:    "uid",
 				Value: "test",
 			},
 		},
-		Creator: []*epub.IdLangElement{
-			&epub.IdLangElement{
+		Creator: []*epub.MetadataLangElement{
+			&epub.MetadataLangElement{
 				Value: "Дмитрий Седых",
 			},
 		},
