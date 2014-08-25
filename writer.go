@@ -20,7 +20,9 @@ var (
 type Writer struct {
 	file      *commitfile.File
 	zipWriter *zip.Writer
-	opf       *Package
+	metadata  *Metadata
+	manifest  []*Item
+	spine     []*ItemRef
 	counter   uint
 }
 
@@ -67,21 +69,12 @@ func Create(filename string, metadata *Metadata) (writer *Writer, err error) {
 	if err != nil {
 		return nil, err
 	}
-	opf := &Package{
-		Version:          "3.0",
-		UniqueIdentifier: "uid",
-		Metadata:         metadata,
-		Manifest: &Manifest{
-			Items: make([]*Item, 0, 10),
-		},
-		Spine: &Spine{
-			ItemRefs: make([]*ItemRef, 0, 10),
-		},
-	}
 	writer = &Writer{
 		file:      file,
 		zipWriter: zipWriter,
-		opf:       opf,
+		metadata:  metadata,
+		manifest:  make([]*Item, 0, 10),
+		spine:     make([]*ItemRef, 0, 10),
 	}
 	return writer, nil
 }
@@ -104,9 +97,9 @@ func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
 		Href:      filename,
 		MediaType: mimetype,
 	}
-	self.opf.Manifest.Items = append(self.opf.Manifest.Items, item)
+	self.manifest = append(self.manifest, item)
 	if spine {
-		self.opf.Spine.ItemRefs = append(self.opf.Spine.ItemRefs, &ItemRef{IdRef: id})
+		self.spine = append(self.spine, &ItemRef{IdRef: id})
 	}
 	return self.zipWriter.Create(path.Join(RootPath, filename))
 }
@@ -122,7 +115,19 @@ func (self *Writer) Close() (err error) {
 	}
 	enc := xml.NewEncoder(item)
 	enc.Indent("", "\t")
-	if err := enc.Encode(self.opf); err != nil {
+	opf := &Package{
+		Version:          "3.0",
+		UniqueIdentifier: "uid",
+		Metadata:         self.metadata,
+		Manifest: &Manifest{
+			Items: self.manifest,
+		},
+		Spine: &Spine{
+			ItemRefs: self.spine,
+		},
+	}
+
+	if err := enc.Encode(opf); err != nil {
 		return err
 	}
 	if err := self.zipWriter.Close(); err != nil {
