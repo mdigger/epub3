@@ -83,8 +83,34 @@ func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
 	filename = filepath.ToSlash(filename)
 	var mimetype string
 	switch ext := path.Ext(filename); ext {
+	case ".gif":
+		mimetype = "image/gif"
+	case ".jpg", ".jpeg", ".jpe":
+		mimetype = "image/jpeg"
+	case ".png":
+		mimetype = "image/png"
+	case ".svg":
+		mimetype = "image/svg+xml"
 	case ".htm", ".html", ".xhtm", ".xhtml":
 		mimetype = "application/xhtml+xml"
+	case ".ncx":
+		mimetype = "application/x-dtbncx+xml"
+	case ".otf":
+		mimetype = "application/vnd.ms-opentype"
+	case ".woff":
+		mimetype = "application/application/font-woff"
+	case ".smil", ".smi", ".sml":
+		mimetype = "application/smil+xml"
+	case ".pls":
+		mimetype = "application/pls+xml"
+	case ".mp3":
+		mimetype = "audio/mpeg"
+	case ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r":
+		mimetype = "audio/mp4"
+	case ".css":
+		mimetype = "text/css"
+	case ".js", ".javascript":
+		mimetype = "text/javascript"
 	default:
 		if mimetype = mime.TypeByExtension(ext); mimetype == "" {
 			mimetype = "application/octet-stream"
