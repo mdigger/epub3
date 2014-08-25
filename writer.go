@@ -2,6 +2,7 @@ package epub
 
 import (
 	"archive/zip"
+	"code.google.com/p/go-uuid/uuid"
 	"encoding/xml"
 	"fmt"
 	"github.com/mdigger/commitfile"
@@ -9,6 +10,7 @@ import (
 	"mime"
 	"path"
 	"path/filepath"
+	"time"
 )
 
 var (
@@ -132,6 +134,43 @@ func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
 
 func (self *Writer) Close() (err error) {
 	defer self.file.Close()
+	if self.metadata == nil {
+		self.metadata = CreateMetadata(nil)
+	}
+	var uid string
+	for _, item := range self.metadata.Identifier {
+		if item.Id != "" {
+			uid = item.Id
+			break
+		}
+	}
+	if uid == "" {
+		self.metadata.Set("uid", "uid", uuid.New())
+		uid = "uid"
+	}
+	var setTime bool
+	for _, item := range self.metadata.Meta {
+		if item.Property == "dcterms:modified" {
+			item.Value = time.Now().UTC().Format(time.RFC3339)
+			setTime = true
+			break
+		}
+	}
+	if !setTime {
+		if self.metadata.Meta == nil {
+			self.metadata.Meta = make([]*Meta, 0, 1)
+		}
+		self.metadata.Meta = append(self.metadata.Meta, &Meta{
+			Property: "dcterms:modified",
+			Value:    time.Now().UTC().Format(time.RFC3339),
+		})
+	}
+	if len(self.metadata.Language) == 0 {
+		self.metadata.Language.Set("", "en")
+	}
+	if len(self.metadata.Title) == 0 {
+		self.metadata.Title.Set("", "Untitled")
+	}
 	item, err := self.zipWriter.Create(path.Join(RootPath, PackageFilename))
 	if err != nil {
 		return err
@@ -143,7 +182,7 @@ func (self *Writer) Close() (err error) {
 	enc.Indent("", "\t")
 	opf := &Package{
 		Version:          "3.0",
-		UniqueIdentifier: "uid",
+		UniqueIdentifier: uid,
 		Metadata:         self.metadata,
 		Manifest: &Manifest{
 			Items: self.manifest,

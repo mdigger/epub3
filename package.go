@@ -25,25 +25,70 @@ type Package struct {
 type Metadata struct {
 	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
 	// Requered Elements
-	Identifier []*Element     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
-	Title      []*LangElement `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
-	Language   []*Element     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
+	Identifier Elements     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
+	Title      LangElements `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
+	Language   Elements     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
 	// DCMES Optional Elements
-	Creator     []*LangElement `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
-	Contributor []*LangElement `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
-	Date        *Element       `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
-	Source      *Element       `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
-	Type        *Element       `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
-	Coverage    []*LangElement `xml:"dc:coverage"`
-	Description []*LangElement `xml:"dc:description"`
-	Format      []*Element     `xml:"dc:format"`
-	Publisher   []*LangElement `xml:"dc:publisher"`
-	Relation    []*LangElement `xml:"dc:relation"`
-	Rights      []*LangElement `xml:"dc:rights"`
-	Subject     []*LangElement `xml:"dc:subject"`
+	Creator     LangElements `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
+	Contributor LangElements `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
+	Date        *Element     `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
+	Source      *Element     `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
+	Type        *Element     `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
+	Coverage    LangElements `xml:"dc:coverage"`
+	Description LangElements `xml:"dc:description"`
+	Format      Elements     `xml:"dc:format"`
+	Publisher   LangElements `xml:"dc:publisher"`
+	Relation    LangElements `xml:"dc:relation"`
+	Rights      LangElements `xml:"dc:rights"`
+	Subject     LangElements `xml:"dc:subject"`
 	// Meta
 	Meta []*Meta `xml:"meta"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
 	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
+}
+
+func (self *Metadata) Set(name, id, value string) {
+	switch name {
+	case "identifier", "id", "uid", "pub-id", "UUID", "DOI", "ISBN", "ISSN":
+		self.Identifier.Set(id, value)
+	case "title":
+		self.Title.Set(id, value)
+	case "language", "lang":
+		self.Language.Set(id, value)
+	case "creator", "author":
+		self.Creator.Set(id, value)
+	case "contributor":
+		self.Contributor.Set(id, value)
+	case "date", "created":
+		self.Date = &Element{Id: id, Value: value}
+	case "source":
+		self.Source = &Element{Id: id, Value: value}
+	case "type":
+		self.Type = &Element{Id: id, Value: value}
+	case "coverage":
+		self.Coverage.Set(id, value)
+	case "description":
+		self.Description.Set(id, value)
+	case "format":
+		self.Format.Set(id, value)
+	case "publisher":
+		self.Publisher.Set(id, value)
+	case "relation":
+		self.Relation.Set(id, value)
+	case "rights":
+		self.Rights.Set(id, value)
+	case "subject":
+		self.Subject.Set(id, value)
+	}
+}
+
+func CreateMetadata(metadata map[string]string) *Metadata {
+	data := &Metadata{
+		DC: "http://purl.org/dc/elements/1.1/",
+	}
+	for item, value := range metadata {
+		data.Set(item, item, value)
+	}
+	return data
 }
 
 // Element with optional ID
@@ -52,12 +97,32 @@ type Element struct {
 	Value string `xml:",chardata"`
 }
 
+type Elements []*Element
+
+func (self *Elements) Set(id, value string) {
+	if self == nil {
+		elements := make(Elements, 0)
+		self = &elements
+	}
+	*self = append(*self, &Element{Id: id, Value: value})
+}
+
 // Element with optional ID, xml:lang & dir
 type LangElement struct {
 	Id    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
 	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
 	Value string `xml:",chardata"`
+}
+
+type LangElements []*LangElement
+
+func (self *LangElements) Set(id, value string) {
+	if self == nil {
+		elements := make(LangElements, 0)
+		self = &elements
+	}
+	*self = append(*self, &LangElement{Id: id, Value: value})
 }
 
 // The meta element provides a generic means of including package metadata, allowing the expression

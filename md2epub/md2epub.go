@@ -33,41 +33,17 @@ func main() {
 	}
 	defer os.Chdir(currentPath)
 	// Создаем описание публикации
-	meta := &epub.Metadata{
-		DC: "http://purl.org/dc/elements/1.1/",
-		Title: []*epub.LangElement{
-			&epub.LangElement{
-				Value: "Тестовая публикация",
-			},
-		},
-		Language: []*epub.Element{
-			&epub.Element{
-				Value: "ru",
-			},
-		},
-		Identifier: []*epub.Element{
-			&epub.Element{
-				Id:    "uid",
-				Value: "test",
-			},
-		},
-		Creator: []*epub.LangElement{
-			&epub.LangElement{
-				Value: "Дмитрий Седых",
-			},
-		},
-		Meta: []*epub.Meta{
-			&epub.Meta{
-				Property: "dcterms:modified",
-				Value:    "2014-08-13T13:00:00Z",
-			},
-		},
-	}
+	// meta := epub.CreateMetadata(map[string]string{
+	// 	"title":  "Тестовая публикация",
+	// 	"lang":   "ru",
+	// 	"author": "Дмитрий Седых",
+	// })
 	// Инициализируем шаблон для преобразования страниц
 	tpage, err := template.New("").Parse(pageTemplateText)
 	if err != nil {
 		log.Fatal(err)
 	}
+	var meta *epub.Metadata
 	// Создаем упаковщик в формат EPUB
 	writer, err := epub.Create(filepath.Join(currentPath, outputFilename), meta)
 	if err != nil {
@@ -144,9 +120,11 @@ func MarkdownCommon(input []byte) []byte {
 	// set up the HTML renderer
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
+	htmlFlags |= blackfriday.HTML_TOC
+	htmlFlags |= blackfriday.HTML_COMPLETE_PAGE
 	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
 	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
-	htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
+	// htmlFlags |= blackfriday.HTML_SMARTYPANTS_LATEX_DASHES
 	// htmlFlags |= blackfriday.HTML_SANITIZE_OUTPUT // Error in img tag
 	renderer := blackfriday.HtmlRenderer(htmlFlags, "", "")
 
@@ -158,6 +136,7 @@ func MarkdownCommon(input []byte) []byte {
 	extensions |= blackfriday.EXTENSION_AUTOLINK
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
 
 	return blackfriday.Markdown(input, renderer, extensions)
