@@ -7,14 +7,16 @@ import (
 // The package element is the root container of the Package Document and encapsulates Publication
 // metadata and resource information.
 type Package struct {
-	XMLName          xml.Name                   `xml:"package"`
-	Version          string                     `xml:"version,attr"`           // Specifies the EPUB specification version to which the Publication conforms
-	UniqueIdentifier string                     `xml:"unique-identifier.attr"` // An IDREF that identifies the dc:identifier element that provides the package's preferred, or primary, identifier
-	Id               string                     `xml:"id,attr,omitempty"`      // The ID of this element, which must be unique within the document scope
-	LangDir                                     // The xml:lang and dir attributes
-	*Metadata        `xml:"metadata"`           // The metadata element encapsulates Publication meta information
-	*Manifest        `xml:"manifest"`           // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
-	*Bindings        `xml:"bindings,omitempty"` // The bindings element defines a set of custom handlers for media types not supported by this specification.
+	XMLName          xml.Name  `xml:"http://www.idpf.org/2007/opf package"`
+	Version          string    `xml:"version,attr"`            // Specifies the EPUB specification version to which the Publication conforms
+	UniqueIdentifier string    `xml:"unique-identifier,attr"`  // An IDREF that identifies the dc:identifier element that provides the package's preferred, or primary, identifier
+	Id               string    `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope
+	Lang             string    `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir              string    `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Metadata         *Metadata `xml:"metadata"`                // The metadata element encapsulates Publication meta information
+	Manifest         *Manifest `xml:"manifest"`                // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
+	Spine            *Spine    `xml:"spine"`                   // The spine element defines the default reading order of the EPUB Publication content
+	Bindings         *Bindings `xml:"bindings,omitempty"`      // The bindings element defines a set of custom handlers for media types not supported by this specification.
 }
 
 // The metadata element encapsulates Publication meta information.
@@ -39,14 +41,8 @@ type Metadata struct {
 	Rights      []*IdLangElement `xml:"dc:rights"`
 	Subject     []*IdLangElement `xml:"dc:subject"`
 	// Meta
-	Metas []*Meta `xml:"meta"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
-	Links []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
-}
-
-// The xml:lang and dir attributes
-type LangDir struct {
-	Lang string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
-	Dir  string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Meta []*Meta `xml:"meta"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
+	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
 // Element with optional ID
@@ -57,18 +53,21 @@ type IdElement struct {
 
 // Element with optional ID, xml:lang & dir
 type IdLangElement struct {
-	LangDir   // The xml:lang and dir attributes
-	IdElement // Element with optional ID
+	Id    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
+	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Value string `xml:",chardata"`
 }
 
 // The meta element provides a generic means of including package metadata, allowing the expression
 // of primary metadata about the package or content and refinement of that metadata.
 type Meta struct {
-	XMLName   xml.Name `xml:"meta"`
-	Property  string   `xml:"property,attr"`          // A property. Refer to Vocabulary Association Mechanisms for more information.
-	Refines   string   `xml:"refines,attr,omitempty"` // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
-	Scheme    string   `xml:"scheme,attr,omitempty"`  // A property data type value indicating the source the value of the element is drawn from.
-	IdElement          // ID & value
+	XMLName  xml.Name `xml:"meta"`
+	Property string   `xml:"property,attr"`          // A property. Refer to Vocabulary Association Mechanisms for more information.
+	Refines  string   `xml:"refines,attr,omitempty"` // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
+	Scheme   string   `xml:"scheme,attr,omitempty"`  // A property data type value indicating the source the value of the element is drawn from.
+	Id       string   `xml:"id,attr,omitempty"`      // The ID of this element, which must be unique within the document scope.
+	Value    string   `xml:",chardata"`
 }
 
 // The link element is used to associate resources with a Publication, such as metadata records.

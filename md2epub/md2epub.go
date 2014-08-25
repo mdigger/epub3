@@ -34,16 +34,34 @@ func main() {
 	defer os.Chdir(currentPath)
 	// Создаем описание публикации
 	meta := &epub.Metadata{
-		DC:       "http://purl.org/dc/elements/1.1/",
-		Title:    epub.SimpleProperty("Тестовая публикация"),
-		Language: epub.SimpleProperty("ru"),
-		Identifier: []*epub.MetaProperty{
-			&epub.MetaProperty{
+		DC: "http://purl.org/dc/elements/1.1/",
+		Title: []*epub.IdLangElement{
+			&epub.IdLangElement{
+				Value: "Тестовая публикация",
+			},
+		},
+		Language: []*epub.IdElement{
+			&epub.IdElement{
+				Value: "ru",
+			},
+		},
+		Identifier: []*epub.IdElement{
+			&epub.IdElement{
 				Id:    "uid",
 				Value: "test",
 			},
 		},
-		Creator: epub.SimpleProperty("Дмитрий Седых"),
+		Creator: []*epub.IdLangElement{
+			&epub.IdLangElement{
+				Value: "Дмитрий Седых",
+			},
+		},
+		Meta: []*epub.Meta{
+			&epub.Meta{
+				Property: "dcterms:modified",
+				Value:    "2014-08-13T13:00:00Z",
+			},
+		},
 	}
 	// Инициализируем шаблон для преобразования страниц
 	tpage, err := template.New("").Parse(pageTemplateText)
@@ -148,7 +166,7 @@ func MarkdownCommon(input []byte) []byte {
 const pageTemplateText = `<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{{ if .lang }}{{ .lang }}{{ else }}en{{ end }}">
 <head>
-<meta charset="utf-8" />
+<meta charset="UTF-8" />
 <title>{{ .title }}</title>
 </head>
 <body>

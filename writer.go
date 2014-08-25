@@ -53,7 +53,9 @@ func Create(filename string, metadata *Metadata) (writer *Writer, err error) {
 	if _, err = io.WriteString(item, xml.Header); err != nil {
 		return nil, err
 	}
-	err = xml.NewEncoder(item).Encode(&Container{
+	enc := xml.NewEncoder(item)
+	enc.Indent("", "\t")
+	err = enc.Encode(&Container{
 		Version: "1.0",
 		Rootfiles: []*RootFile{
 			&RootFile{
@@ -66,11 +68,15 @@ func Create(filename string, metadata *Metadata) (writer *Writer, err error) {
 		return nil, err
 	}
 	opf := &Package{
-		Version:  "3.0",
-		UID:      "uid",
-		Metadata: metadata,
-		Manifest: make([]*Item, 0, 10),
-		Spine:    make([]*ItemRef, 0, 10),
+		Version:          "3.0",
+		UniqueIdentifier: "uid",
+		Metadata:         metadata,
+		Manifest: &Manifest{
+			Items: make([]*Item, 0, 10),
+		},
+		Spine: &Spine{
+			ItemRefs: make([]*ItemRef, 0, 10),
+		},
 	}
 	writer = &Writer{
 		file:      file,
@@ -92,15 +98,15 @@ func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
 		}
 	}
 	self.counter++
-	id := fmt.Sprintf("id%04x", self.counter)
+	id := fmt.Sprintf("id%02x", self.counter)
 	item := &Item{
 		Id:        id,
 		Href:      filename,
 		MediaType: mimetype,
 	}
-	self.opf.Manifest = append(self.opf.Manifest, item)
+	self.opf.Manifest.Items = append(self.opf.Manifest.Items, item)
 	if spine {
-		self.opf.Spine = append(self.opf.Spine, &ItemRef{IdRef: id})
+		self.opf.Spine.ItemRefs = append(self.opf.Spine.ItemRefs, &ItemRef{IdRef: id})
 	}
 	return self.zipWriter.Create(path.Join(RootPath, filename))
 }
@@ -114,7 +120,9 @@ func (self *Writer) Close() (err error) {
 	if _, err := io.WriteString(item, xml.Header); err != nil {
 		return err
 	}
-	if err := xml.NewEncoder(item).Encode(self.opf); err != nil {
+	enc := xml.NewEncoder(item)
+	enc.Indent("", "\t")
+	if err := enc.Encode(self.opf); err != nil {
 		return err
 	}
 	if err := self.zipWriter.Close(); err != nil {
