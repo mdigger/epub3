@@ -7,51 +7,53 @@ import (
 // The package element is the root container of the Package Document and encapsulates Publication
 // metadata and resource information.
 type Package struct {
-	XMLName          xml.Name  `xml:"http://www.idpf.org/2007/opf package"`
-	Version          string    `xml:"version,attr"`            // Specifies the EPUB specification version to which the Publication conforms
-	UniqueIdentifier string    `xml:"unique-identifier,attr"`  // An IDREF that identifies the dc:identifier element that provides the package's preferred, or primary, identifier
-	Id               string    `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope
-	Lang             string    `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
-	Dir              string    `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
-	Metadata         *Metadata `xml:"metadata"`                // The metadata element encapsulates Publication meta information
-	Manifest         *Manifest `xml:"manifest"`                // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
-	Spine            *Spine    `xml:"spine"`                   // The spine element defines the default reading order of the EPUB Publication content
-	Bindings         *Bindings `xml:"bindings,omitempty"`      // The bindings element defines a set of custom handlers for media types not supported by this specification.
+	XMLName          xml.Name    `xml:"http://www.idpf.org/2007/opf package"`
+	Version          string      `xml:"version,attr"`            // Specifies the EPUB specification version to which the Publication conforms
+	UniqueIdentifier string      `xml:"unique-identifier,attr"`  // An IDREF that identifies the dc:identifier element that provides the package's preferred, or primary, identifier
+	Prefix           string      `xml:"prefix,attr,omitempty"`   // Declaration mechanism for prefixes not reserved by this specification.
+	Lang             string      `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir              string      `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Id               string      `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope
+	Metadata         *Metadata   `xml:"metadata"`                // The metadata element encapsulates Publication meta information
+	Manifest         *Manifest   `xml:"manifest"`                // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
+	Spine            *Spine      `xml:"spine"`                   // The spine element defines the default reading order of the EPUB Publication content
+	Bindings         *Bindings   `xml:"bindings,omitempty"`      // The bindings element defines a set of custom handlers for media types not supported by this specification.
+	Collection       *Collection `xml:"collection,omitempty"`    // The collection element defines a related group of resources.
 }
 
 // The metadata element encapsulates Publication meta information.
 type Metadata struct {
 	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
 	// Requered Elements
-	Identifier []*MetadataElement     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
-	Title      []*MetadataLangElement `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
-	Language   []*MetadataElement     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
+	Identifier []*Element     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
+	Title      []*LangElement `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
+	Language   []*Element     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
 	// DCMES Optional Elements
-	Creator     []*MetadataLangElement `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
-	Contributor []*MetadataLangElement `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
-	Date        *MetadataElement       `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
-	Source      *MetadataElement       `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
-	Type        *MetadataElement       `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
-	Coverage    []*MetadataLangElement `xml:"dc:coverage"`
-	Description []*MetadataLangElement `xml:"dc:description"`
-	Format      []*MetadataElement     `xml:"dc:format"`
-	Publisher   []*MetadataLangElement `xml:"dc:publisher"`
-	Relation    []*MetadataLangElement `xml:"dc:relation"`
-	Rights      []*MetadataLangElement `xml:"dc:rights"`
-	Subject     []*MetadataLangElement `xml:"dc:subject"`
+	Creator     []*LangElement `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
+	Contributor []*LangElement `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
+	Date        *Element       `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
+	Source      *Element       `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
+	Type        *Element       `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
+	Coverage    []*LangElement `xml:"dc:coverage"`
+	Description []*LangElement `xml:"dc:description"`
+	Format      []*Element     `xml:"dc:format"`
+	Publisher   []*LangElement `xml:"dc:publisher"`
+	Relation    []*LangElement `xml:"dc:relation"`
+	Rights      []*LangElement `xml:"dc:rights"`
+	Subject     []*LangElement `xml:"dc:subject"`
 	// Meta
 	Meta []*Meta `xml:"meta"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
 	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
 // Element with optional ID
-type MetadataElement struct {
+type Element struct {
 	Id    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
 	Value string `xml:",chardata"`
 }
 
 // Element with optional ID, xml:lang & dir
-type MetadataLangElement struct {
+type LangElement struct {
 	Id    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
 	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
@@ -61,10 +63,12 @@ type MetadataLangElement struct {
 // The meta element provides a generic means of including package metadata, allowing the expression
 // of primary metadata about the package or content and refinement of that metadata.
 type Meta struct {
-	Property string `xml:"property,attr"`          // A property. Refer to Vocabulary Association Mechanisms for more information.
-	Refines  string `xml:"refines,attr,omitempty"` // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
-	Scheme   string `xml:"scheme,attr,omitempty"`  // A property data type value indicating the source the value of the element is drawn from.
-	Id       string `xml:"id,attr,omitempty"`      // The ID of this element, which must be unique within the document scope.
+	Property string `xml:"property,attr"`           // A property. Refer to Vocabulary Association Mechanisms for more information.
+	Refines  string `xml:"refines,attr,omitempty"`  // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
+	Id       string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
+	Scheme   string `xml:"scheme,attr,omitempty"`   // A property data type value indicating the source the value of the element is drawn from.
+	Lang     string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir      string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
 	Value    string `xml:",chardata"`
 }
 
@@ -123,4 +127,15 @@ type Bindings struct {
 type MediaType struct {
 	MediaType string `xml:"media-type,attr"` // A media type [RFC2046] that specifies the type and format of the resource to be handled.
 	Handler   string `xml:"handler,attr"`    // An IDREF [XML] that identifies the manifest XHTML Content Document to be invoked to handle content of the type specified in this element
+}
+
+// The collection element defines a related group of resources.
+type Collection struct {
+	Lang        string        `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir         string        `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Id          string        `xml:"id,attr,omitempty"`       // The ID [XML] of this element, which must be unique within the document scope.
+	Role        string        `xml:"role,attr"`               // Specifies the nature of the collection
+	Metadata    *Metadata     `xml:"metadata,omitempty"`      // The optional metadata element child of collection is an adaptation of the package metadata element.
+	Collections []*Collection `xml:"collection,omitempty"`    // A collection may define sub-collections through the inclusion of one or more child collection elements.
+	Links       []*Link       `xml:"link,omitempty"`          // The link element child of collection is an adaptation of the metadata link element.
 }
