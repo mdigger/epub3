@@ -10,6 +10,7 @@ import (
 	"mime"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -22,13 +23,13 @@ var (
 type Writer struct {
 	file      *commitfile.File
 	zipWriter *zip.Writer
-	metadata  *Metadata
+	Metadata  *Metadata
 	manifest  []*Item
 	spine     []*ItemRef
 	counter   uint
 }
 
-func Create(filename string, metadata *Metadata) (writer *Writer, err error) {
+func Create(filename string) (writer *Writer, err error) {
 	file, err := commitfile.Create(filename)
 	if err != nil {
 		return nil, err
@@ -74,14 +75,13 @@ func Create(filename string, metadata *Metadata) (writer *Writer, err error) {
 	writer = &Writer{
 		file:      file,
 		zipWriter: zipWriter,
-		metadata:  metadata,
 		manifest:  make([]*Item, 0, 10),
 		spine:     make([]*ItemRef, 0, 10),
 	}
 	return writer, nil
 }
 
-func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
+func (self *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
 	filename = filepath.ToSlash(filename)
 	var mimetype string
 	switch ext := path.Ext(filename); ext {
@@ -121,9 +121,10 @@ func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
 	self.counter++
 	id := fmt.Sprintf("id%02x", self.counter)
 	item := &Item{
-		Id:        id,
-		Href:      filename,
-		MediaType: mimetype,
+		Id:         id,
+		Href:       filename,
+		MediaType:  mimetype,
+		Properties: strings.Join(properties, " "),
 	}
 	self.manifest = append(self.manifest, item)
 	if spine {
@@ -134,22 +135,26 @@ func (self *Writer) Add(filename string, spine bool) (io.Writer, error) {
 
 func (self *Writer) Close() (err error) {
 	defer self.file.Close()
-	if self.metadata == nil {
-		self.metadata = CreateMetadata(nil)
+	metadata := self.Metadata
+	if metadata == nil {
+		metadata = new(Metadata)
+	}
+	if metadata.DC == "" {
+		metadata.DC = "http://purl.org/dc/elements/1.1/"
 	}
 	var uid string
-	for _, item := range self.metadata.Identifier {
+	for _, item := range metadata.Identifier {
 		if item.Id != "" {
 			uid = item.Id
 			break
 		}
 	}
 	if uid == "" {
-		self.metadata.Set("uid", "uid", uuid.New())
+		metadata.Add("uid", "uid", uuid.New())
 		uid = "uid"
 	}
 	var setTime bool
-	for _, item := range self.metadata.Meta {
+	for _, item := range metadata.Meta {
 		if item.Property == "dcterms:modified" {
 			item.Value = time.Now().UTC().Format(time.RFC3339)
 			setTime = true
@@ -157,19 +162,19 @@ func (self *Writer) Close() (err error) {
 		}
 	}
 	if !setTime {
-		if self.metadata.Meta == nil {
-			self.metadata.Meta = make([]*Meta, 0, 1)
+		if metadata.Meta == nil {
+			metadata.Meta = make([]*Meta, 0, 1)
 		}
-		self.metadata.Meta = append(self.metadata.Meta, &Meta{
+		metadata.Meta = append(metadata.Meta, &Meta{
 			Property: "dcterms:modified",
 			Value:    time.Now().UTC().Format(time.RFC3339),
 		})
 	}
-	if len(self.metadata.Language) == 0 {
-		self.metadata.Language.Set("", "en")
+	if len(metadata.Language) == 0 {
+		metadata.Language.Add("", "en")
 	}
-	if len(self.metadata.Title) == 0 {
-		self.metadata.Title.Set("", "Untitled")
+	if len(metadata.Title) == 0 {
+		metadata.Title.Add("", "Untitled")
 	}
 	item, err := self.zipWriter.Create(path.Join(RootPath, PackageFilename))
 	if err != nil {
@@ -183,7 +188,7 @@ func (self *Writer) Close() (err error) {
 	opf := &Package{
 		Version:          "3.0",
 		UniqueIdentifier: uid,
-		Metadata:         self.metadata,
+		Metadata:         metadata,
 		Manifest: &Manifest{
 			Items: self.manifest,
 		},

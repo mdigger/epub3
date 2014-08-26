@@ -46,18 +46,18 @@ type Metadata struct {
 	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
-func (self *Metadata) Set(name, id, value string) {
+func (self *Metadata) Add(name, id, value string) {
 	switch name {
 	case "identifier", "id", "uid", "pub-id", "UUID", "DOI", "ISBN", "ISSN":
-		self.Identifier.Set(id, value)
+		self.Identifier.Add(id, value)
 	case "title":
-		self.Title.Set(id, value)
+		self.Title.Add(id, value)
 	case "language", "lang":
-		self.Language.Set(id, value)
+		self.Language.Add(id, value)
 	case "creator", "author":
-		self.Creator.Set(id, value)
+		self.Creator.Add(id, value)
 	case "contributor":
-		self.Contributor.Set(id, value)
+		self.Contributor.Add(id, value)
 	case "date", "created":
 		self.Date = &Element{Id: id, Value: value}
 	case "source":
@@ -65,19 +65,19 @@ func (self *Metadata) Set(name, id, value string) {
 	case "type":
 		self.Type = &Element{Id: id, Value: value}
 	case "coverage":
-		self.Coverage.Set(id, value)
+		self.Coverage.Add(id, value)
 	case "description":
-		self.Description.Set(id, value)
+		self.Description.Add(id, value)
 	case "format":
-		self.Format.Set(id, value)
+		self.Format.Add(id, value)
 	case "publisher":
-		self.Publisher.Set(id, value)
+		self.Publisher.Add(id, value)
 	case "relation":
-		self.Relation.Set(id, value)
+		self.Relation.Add(id, value)
 	case "rights":
-		self.Rights.Set(id, value)
+		self.Rights.Add(id, value)
 	case "subject":
-		self.Subject.Set(id, value)
+		self.Subject.Add(id, value)
 	}
 }
 
@@ -86,7 +86,7 @@ func CreateMetadata(metadata map[string]string) *Metadata {
 		DC: "http://purl.org/dc/elements/1.1/",
 	}
 	for item, value := range metadata {
-		data.Set(item, item, value)
+		data.Add(item, item, value)
 	}
 	return data
 }
@@ -99,7 +99,7 @@ type Element struct {
 
 type Elements []*Element
 
-func (self *Elements) Set(id, value string) {
+func (self *Elements) Add(id, value string) {
 	if self == nil {
 		elements := make(Elements, 0)
 		self = &elements
@@ -117,7 +117,7 @@ type LangElement struct {
 
 type LangElements []*LangElement
 
-func (self *LangElements) Set(id, value string) {
+func (self *LangElements) Add(id, value string) {
 	if self == nil {
 		elements := make(LangElements, 0)
 		self = &elements
