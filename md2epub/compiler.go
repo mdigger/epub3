@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	metadataFiles = []string{"metadata.yml", "metadata.yaml", "metadata.json"}
+	metadataFiles = []string{"metadata.yaml", "metadata.yml", "metadata.json"}
+	coverFiles    = []string{"cover.png", "cover.svg", "cover.jpeg", "cover.jpg", "cover.gif"}
 )
 
 // Компилятор публикации
@@ -90,22 +91,8 @@ func compiler(sourcePath, outputFilename string) error {
 		if finfo.IsDir() {
 			return nil
 		}
-		// // Обложка публикации
-		// case "cover.gif", "cover.jpg", "cover.jpeg", "cover.png", "cover.svg":
-		// 	if setCover {
-		// 		log.Println("Ignore duplicate cover image:", filename)
-		// 		return nil
-		// 	}
-		// 	log.Println("Add cover image:", filename)
-		// 	if err := writer.AddFile(filename, filename, false, "cover-image"); err != nil {
-		// 		return err
-		// 	}
-		// 	setCover = true
-		// Другие файлы
-		// В зависимости от расширения имени файла
 		switch strings.ToLower(filepath.Ext(filename)) {
-		// Статья в формате Markdown: преобразуем и добавляем
-		case ".md", ".mdown", ".markdown":
+		case ".md", ".mdown", ".markdown": // Статья в формате Markdown: преобразуем и добавляем
 			log.Println("Markdown:", filename)
 			// Читаем файл и отделяем метаданные
 			meta, data, err := metadata.ReadFile(filename)
@@ -145,17 +132,15 @@ func compiler(sourcePath, outputFilename string) error {
 				Filename: filename,
 				Spine:    spine,
 			})
-		// Иллюстрации и другие файлы
 		case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg",
 			".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r",
 			".css", ".js", ".javascript",
 			".json",
 			".otf", ".woff",
-			".pls", ".smil", ".smi", ".sml":
+			".pls", ".smil", ".smi", ".sml": // Иллюстрации и другие файлы
 			var properties []string
 			// Специальная обработка обложки
-			if !setCover && (filename == "cover.svg" || filename == "cover.jpg" ||
-				filename == "cover.jpeg" || filename == "cover.gif") {
+			if !setCover && isFilename(filename, coverFiles) {
 				properties = []string{"cover-image"}
 				setCover = true
 			}
@@ -163,8 +148,7 @@ func compiler(sourcePath, outputFilename string) error {
 			if err := writer.AddFile(filename, filename, false, properties...); err != nil {
 				return err
 			}
-		// Другое — игнорируем
-		default:
+		default: // Другое — игнорируем
 			log.Println("Ignore:", filename)
 		}
 
