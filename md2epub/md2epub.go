@@ -199,7 +199,8 @@ func compiler(sourcePath, outputFilename string) error {
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
-	// Флаг для избежания двойной обработки обложки
+	// Флаг для избежания двойной обработки обложки: после его установки
+	// новые попадающиеся обложки игнорируются.
 	var setCover bool
 	// Определяем функция для обработки перебора файлов и каталогов
 	walkFn := func(filename string, finfo os.FileInfo, err error) error {
@@ -264,29 +265,13 @@ func compiler(sourcePath, outputFilename string) error {
 				if err := tpage.Execute(fileWriter, meta); err != nil {
 					return err
 				}
-			// Иллюстрация — добавляем в публикацию как есть
-			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg":
-				log.Println("Add image:", filename)
-				if err := addFile(filename, false); err != nil {
-					return err
-				}
-			case ".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r":
-				log.Println("Add media:", filename)
-				if err := addFile(filename, false); err != nil {
-					return err
-				}
-			case ".css", ".js", ".javascript":
-				log.Println("Add css or javascript:", filename)
-				if err := addFile(filename, false); err != nil {
-					return err
-				}
-			case ".otf", ".woff":
-				log.Println("Add font:", filename)
-				if err := addFile(filename, false); err != nil {
-					return err
-				}
-			case ".pls", ".smil", ".smi", ".sml":
-				log.Println("Add smil:", filename)
+			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg",
+				".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r",
+				".css", ".js", ".javascript",
+				".json",
+				".otf", ".woff",
+				".pls", ".smil", ".smi", ".sml":
+				log.Println("Add file:", filename)
 				if err := addFile(filename, false); err != nil {
 					return err
 				}
