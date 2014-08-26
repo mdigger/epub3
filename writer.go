@@ -30,17 +30,21 @@ type Writer struct {
 }
 
 func Create(filename string) (writer *Writer, err error) {
+	// Создаем временный файл с публикацией
 	file, err := commitfile.Create(filename)
 	if err != nil {
 		return nil, err
 	}
+	// В случае ошибки закрываем и удаляем его при выходе из функции
 	defer func() {
 		if err != nil {
 			file.Close()
 		}
 	}()
+	// Инициализируем упаковку в архив
 	zipWriter := zip.NewWriter(file)
 	var item io.Writer
+	// Добавляем информацию о mimetype
 	item, err = zipWriter.CreateHeader(&zip.FileHeader{
 		Name:   "mimetype",
 		Method: zip.Store,
@@ -51,6 +55,7 @@ func Create(filename string) (writer *Writer, err error) {
 	if _, err = io.WriteString(item, EPUBMimeType); err != nil {
 		return nil, err
 	}
+	// Добавляем описание контейнера
 	item, err = zipWriter.Create(path.Join(METAINF, CONTAINER))
 	if err != nil {
 		return nil, err
@@ -72,6 +77,7 @@ func Create(filename string) (writer *Writer, err error) {
 	if err != nil {
 		return nil, err
 	}
+	// Инициализируем объект с описанием публикации
 	writer = &Writer{
 		file:      file,
 		zipWriter: zipWriter,
@@ -82,9 +88,18 @@ func Create(filename string) (writer *Writer, err error) {
 }
 
 func (self *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
-	filename = filepath.ToSlash(filename)
+	filename = filepath.ToSlash(filename) // Нормализуем имя файла
+	// Проверяем, что файла с таким именем еще нет в публикации.
+	// Иначе возвращаем ошибку.
+	for _, item := range self.manifest {
+		if item.Href == filename {
+			return nil,
+				fmt.Errorf("A file with the name %q has already been added to the publication", filename)
+		}
+	}
+	// Вычисляем mimetype по расширению файла
 	var mimetype string
-	switch ext := path.Ext(filename); ext {
+	switch ext := strings.ToLower(path.Ext(filename)); ext {
 	case ".gif":
 		mimetype = "image/gif"
 	case ".jpg", ".jpeg", ".jpe":
@@ -118,30 +133,38 @@ func (self *Writer) Add(filename string, spine bool, properties ...string) (io.W
 			mimetype = "application/octet-stream"
 		}
 	}
-	self.counter++
+	self.counter++ // Увеличиваем счетчик добавленных файлов
 	id := fmt.Sprintf("id%02x", self.counter)
+	// Создаем описание добавляемого файла
 	item := &Item{
 		Id:         id,
 		Href:       filename,
 		MediaType:  mimetype,
 		Properties: strings.Join(properties, " "),
 	}
+	// Добавляем описание в список
 	self.manifest = append(self.manifest, item)
+	// Если необходимо, то добавляем идентификатор файла в список чтения
 	if spine {
 		self.spine = append(self.spine, &ItemRef{IdRef: id})
 	}
+	// Возвращаем writer для записи содержимого файла
 	return self.zipWriter.Create(path.Join(RootPath, filename))
 }
 
 func (self *Writer) Close() (err error) {
+	// Закрываем файл по окончании
 	defer self.file.Close()
+	// Инициализируем метаданные, если они не были инициализированы раньше
 	metadata := self.Metadata
 	if metadata == nil {
 		metadata = new(Metadata)
 	}
+	// Проверяем и добавляем по необходимости обязательные элементы
 	if metadata.DC == "" {
 		metadata.DC = "http://purl.org/dc/elements/1.1/"
 	}
+	// Получаем идентификатор уникального идентификатора публикации
 	var uid string
 	for _, item := range metadata.Identifier {
 		if item.Id != "" {
@@ -153,6 +176,7 @@ func (self *Writer) Close() (err error) {
 		metadata.Add("uid", "uid", uuid.New())
 		uid = "uid"
 	}
+	// Добавляем дату модификации
 	var setTime bool
 	for _, item := range metadata.Meta {
 		if item.Property == "dcterms:modified" {
@@ -170,12 +194,15 @@ func (self *Writer) Close() (err error) {
 			Value:    time.Now().UTC().Format(time.RFC3339),
 		})
 	}
+	// Устанавливаем язык, если его нет
 	if len(metadata.Language) == 0 {
 		metadata.Language.Add("", "en")
 	}
+	// Добавляем заголовок, если его нет
 	if len(metadata.Title) == 0 {
 		metadata.Title.Add("", "Untitled")
 	}
+	// Сериализуем описание публикации
 	item, err := self.zipWriter.Create(path.Join(RootPath, PackageFilename))
 	if err != nil {
 		return err
@@ -200,9 +227,11 @@ func (self *Writer) Close() (err error) {
 	if err := enc.Encode(opf); err != nil {
 		return err
 	}
+	// Закрываем упаковку
 	if err := self.zipWriter.Close(); err != nil {
 		return err
 	}
+	// Отменяем автоудаление файла
 	self.file.Commit()
 	return nil
 }
