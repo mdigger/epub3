@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -158,6 +159,21 @@ func main() {
 	}
 	// Добавляем метаданные в публикацию
 	writer.Metadata = pubmeta
+	// Функция для добавления файла в публикацию
+	addFile := func(filename string, spine bool, properties ...string) {
+		file, err := os.Open(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		fileWriter, err := writer.Add(filename, spine, properties...)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if _, err := io.Copy(fileWriter, file); err != nil {
+			log.Fatal(err)
+		}
+	}
 	// Инициализируем преобразование из формата Markdown
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
@@ -186,7 +202,7 @@ func main() {
 			return nil
 		}
 		// Проверяем по имени файла
-		switch filename {
+		switch strings.ToLower(filename) {
 		// Описание метаданных публикации — уже загружено, если было
 		case "metadata.yml", "metadata.yaml", "metadata.json":
 			return nil
@@ -197,24 +213,12 @@ func main() {
 				return nil
 			}
 			log.Println("Add cover image:", filename)
-			file, err := os.Open(filename)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer file.Close()
-			// Добавляем свойство, что это именно обложка
-			fileWriter, err := writer.Add(filename, false, "cover-image")
-			if err != nil {
-				log.Fatal(err)
-			}
-			if _, err := io.Copy(fileWriter, file); err != nil {
-				log.Fatal(err)
-			}
+			addFile(filename, false, "cover-image")
 			setCover = true
 		// Другие файлы
 		default:
 			// В зависимости от расширения имени файла
-			switch filepath.Ext(filename) {
+			switch strings.ToLower(filepath.Ext(filename)) {
 			// Статья в формате Markdown: преобразуем и добавляем
 			case ".md", ".mdown", ".markdown":
 				log.Println("Markdown:", filename)
@@ -249,18 +253,19 @@ func main() {
 			// Иллюстрация — добавляем в публикацию как есть
 			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg":
 				log.Println("Add image:", filename)
-				file, err := os.Open(filename)
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer file.Close()
-				fileWriter, err := writer.Add(filename, false)
-				if err != nil {
-					log.Fatal(err)
-				}
-				if _, err := io.Copy(fileWriter, file); err != nil {
-					log.Fatal(err)
-				}
+				addFile(filename, false)
+			case ".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r":
+				log.Println("Add media:", filename)
+				addFile(filename, false)
+			case ".css", ".js", ".javascript":
+				log.Println("Add css or javascript:", filename)
+				addFile(filename, false)
+			case ".otf", ".woff":
+				log.Println("Add font:", filename)
+				addFile(filename, false)
+			case ".pls", ".smil", ".smi", ".sml":
+				log.Println("Add smil:", filename)
+				addFile(filename, false)
 			// Другое — игнорируем
 			default:
 				log.Println("Ignore:", filename)
