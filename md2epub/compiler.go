@@ -278,6 +278,7 @@ func compiler(sourcePath, outputFilename string) error {
 				if err := tpage.Execute(fileWriter, meta); err != nil {
 					return err
 				}
+			// Иллюстрации и другие файлы
 			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg",
 				".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r",
 				".css", ".js", ".javascript",
