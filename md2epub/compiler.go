@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/xml"
-	"github.com/kr/pretty"
 	"github.com/mdigger/epub3"
 	"github.com/mdigger/metadata"
 	"github.com/russross/blackfriday"
@@ -93,7 +92,6 @@ func compiler(sourcePath, outputFilename string) error {
 		}
 		switch strings.ToLower(filepath.Ext(filename)) {
 		case ".md", ".mdown", ".markdown": // Статья в формате Markdown: преобразуем и добавляем
-			log.Println("Markdown:", filename)
 			// Читаем файл и отделяем метаданные
 			meta, data, err := metadata.ReadFile(filename)
 			if err != nil {
@@ -125,13 +123,19 @@ func compiler(sourcePath, outputFilename string) error {
 			if err := tpage.Execute(fileWriter, meta); err != nil {
 				return err
 			}
+			title := meta.Title()
+			if title == "" {
+				title = "* * *"
+			}
 			// Добавляем информацию о файле в оглавление
 			nav = append(nav, &NavigationItem{
-				Title:    meta.Title(),
+				Title:    title,
 				Subtitle: meta.Subtitle(),
 				Filename: filename,
 				Spine:    spine,
 			})
+			log.Printf("Add %s %q", filename, title)
+
 		case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg",
 			".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r",
 			".css", ".js", ".javascript",
@@ -144,12 +148,19 @@ func compiler(sourcePath, outputFilename string) error {
 				properties = []string{"cover-image"}
 				setCover = true
 			}
-			log.Printf("Add: %s %s", filename, strings.Join(properties, ", "))
 			if err := writer.AddFile(filename, filename, false, properties...); err != nil {
 				return err
 			}
+			if properties != nil {
+				log.Printf("Add %s\t%q", filename, strings.Join(properties, ", "))
+			} else {
+				log.Printf("Add %s", filename)
+			}
+
 		default: // Другое — игнорируем
-			log.Println("Ignore:", filename)
+			if !isFilename(filename, metadataFiles) {
+				log.Printf("Ignore %s", filename)
+			}
 		}
 
 		return nil
@@ -158,6 +169,25 @@ func compiler(sourcePath, outputFilename string) error {
 	if err := filepath.Walk(".", walkFn); err != nil {
 		return err
 	}
-	pretty.Println(nav)
+	// Добавляем оглавление
+	fileWriter, err := writer.Writer("toc.xhtml", false, "nav")
+	if err != nil {
+		return err
+	}
+	// Добавляем в начало документа XML-заголовок
+	if _, err := io.WriteString(fileWriter, xml.Header); err != nil {
+		return err
+	}
+	// Преобразуем по шаблону и записываем в публикацию.
+	err = tnav.Execute(fileWriter, map[string]interface{}{
+		"lang":  publang,
+		"title": "Оглавление",
+		"toc":   nav,
+	})
+	if err != nil {
+		return err
+	}
+	log.Printf("Generate %s %q", "toc.xhtml", "nav")
+
 	return nil
 }

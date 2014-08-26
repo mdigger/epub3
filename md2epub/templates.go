@@ -32,8 +32,8 @@ const (
 <body>
 <nav epub:type="toc">
 <h1>{{ .title }}</h1>
-<ol>{{ range .toc }}{{ if and .Title .Spine .Filename}}
-<li><a href="{{ .Filename }}">{{ .Title }}</a></li>{{ end }}{{ end }}
+<ol>{{ range .toc }}
+<li><a href="{{ .Filename }}">{{ if .Title }}{{ .Title }}{{ else }}* * *{{ end }}</a></li>{{ end }}
 </ol>
 </nav>
 </body>
