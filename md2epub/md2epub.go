@@ -17,20 +17,7 @@ import (
 
 func main() {
 	log.SetFlags(0)
-	htmlFlags := 0
-	htmlFlags |= blackfriday.HTML_USE_XHTML
-	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
-	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
-	markdownRender := blackfriday.HtmlRenderer(htmlFlags, "", "")
-	extensions := 0
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
-	extensions |= blackfriday.EXTENSION_HEADER_IDS
+	// Разбираем входящие параметры
 	flag.Parse()
 	if flag.NArg() < 1 {
 		flag.Usage()
@@ -64,6 +51,22 @@ func main() {
 		log.Fatal(err)
 	}
 	defer writer.Close()
+	// Инициализируем преобразование из формата Markdown
+	htmlFlags := 0
+	htmlFlags |= blackfriday.HTML_USE_XHTML
+	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
+	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
+	markdownRender := blackfriday.HtmlRenderer(htmlFlags, "", "")
+	extensions := 0
+	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= blackfriday.EXTENSION_TABLES
+	extensions |= blackfriday.EXTENSION_FENCED_CODE
+	extensions |= blackfriday.EXTENSION_AUTOLINK
+	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
+	extensions |= blackfriday.EXTENSION_HEADER_IDS
+	// Флаги для избежания двойной обработки метаданных и обложки
 	var setCover, setMetada bool
 	// Определяем функция для обработки перебора файлов и каталогов
 	walkFn := func(filename string, finfo os.FileInfo, err error) error {
@@ -75,7 +78,9 @@ func main() {
 		if finfo.IsDir() {
 			return nil
 		}
+		// Проверяем по имени файла
 		switch filename {
+		// Описание метаданных публикации
 		case "metadata.yml", "metadata.yaml", "metadata.json":
 			if setMetada {
 				log.Println("Ignore duplicate metadata:", filename)
@@ -91,6 +96,7 @@ func main() {
 			}
 			// TODO: заполнить метаданные
 			setMetada = true
+		// Обложка публикации
 		case "cover.gif", "cover.jpg", "cover.jpeg", "cover.png", "cover.svg":
 			if setCover {
 				log.Println("Ignore duplicate cover image:", filename)
@@ -102,6 +108,7 @@ func main() {
 				log.Fatal(err)
 			}
 			defer file.Close()
+			// Добавляем свойство, что это именно обложка
 			fileWriter, err := writer.Add(filename, false, "cover-image")
 			if err != nil {
 				log.Fatal(err)
@@ -110,8 +117,11 @@ func main() {
 				log.Fatal(err)
 			}
 			setCover = true
+		// Другие файлы
 		default:
+			// В зависимости от расширения имени файла
 			switch filepath.Ext(filename) {
+			// Статья в формате Markdown: преобразуем и добавляем
 			case ".md", ".mdown", ".markdown":
 				log.Println("Markdown:", filename)
 				// Читаем файл и отделяем метаданные
@@ -131,8 +141,8 @@ func main() {
 				}
 				// Изменяем расширение имени файла на .xhtml
 				filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".xhtml"
-				// TODO: добавлять в spine или нет, в зависимости от имени.
-				fileWriter, err := writer.Add(filename, true)
+				// Добавляем в основной список чтения, если имя файла не начинается с подчеркивания
+				fileWriter, err := writer.Add(filename, filepath.Base(filename)[0] != '_')
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -142,6 +152,7 @@ func main() {
 				if err := tpage.Execute(fileWriter, meta); err != nil {
 					log.Fatal(err)
 				}
+			// Иллюстрация — добавляем в публикацию как есть
 			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg":
 				log.Println("Add image:", filename)
 				file, err := os.Open(filename)
@@ -156,6 +167,7 @@ func main() {
 				if _, err := io.Copy(fileWriter, file); err != nil {
 					log.Fatal(err)
 				}
+			// Другое — игнорируем
 			default:
 				log.Println("Ignore:", filename)
 			}
