@@ -8,6 +8,7 @@ import (
 	"github.com/mdigger/commitfile"
 	"io"
 	"mime"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -87,7 +88,23 @@ func Create(filename string) (writer *Writer, err error) {
 	return writer, nil
 }
 
-func (self *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
+func (self *Writer) AddFile(sourceFilename, filename string, spine bool, properties ...string) error {
+	file, err := os.Open(sourceFilename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	fileWriter, err := self.Writer(filename, spine, properties...)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(fileWriter, file); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (self *Writer) Writer(filename string, spine bool, properties ...string) (io.Writer, error) {
 	filename = filepath.ToSlash(filename) // Нормализуем имя файла
 	// Проверяем, что файла с таким именем еще нет в публикации.
 	// Иначе возвращаем ошибку.
