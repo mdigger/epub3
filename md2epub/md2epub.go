@@ -23,7 +23,7 @@ func main() {
 	flag.Parse()
 	if flag.NArg() < 1 {
 		flag.Usage()
-		os.Exit(2)
+		os.Exit(1)
 	}
 	sourcePath := flag.Arg(0)
 	var outputFilename string // Имя результирующего файла с публикацией
@@ -32,32 +32,34 @@ func main() {
 	} else {
 		outputFilename = filepath.Base(sourcePath) + ".epub"
 	}
+	if err := compiler(sourcePath, outputFilename); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// Компилятор публикации
+func compiler(sourcePath, outputFilename string) error {
 	// Делаем исходный каталог текущим, чтобы не вычислять относительный путь. По окончании
 	// обработки восстанавливаем исходный каталог обратно.
 	currentPath, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if err := os.Chdir(sourcePath); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer os.Chdir(currentPath)
 	// Инициализируем шаблон для преобразования страниц
 	tpage, err := template.New("").Parse(pageTemplateText)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	// Создаем упаковщик в формат EPUB
-	writer, err := epub.Create(filepath.Join(currentPath, outputFilename))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer writer.Close()
 	// Инициализируем описание метаданных
 	pubmeta := &epub.Metadata{
 		DC:   "http://purl.org/dc/elements/1.1/",
 		Meta: make([]*epub.Meta, 0),
 	}
+	publang := "en" // Язык публикации по умолчанию
 	// Загружаем описание метаданных публикации
 	for _, name := range []string{"metadata.yml", "metadata.yaml", "metadata.json"} {
 		fi, err := os.Stat(name)
@@ -66,16 +68,17 @@ func main() {
 		}
 		data, err := ioutil.ReadFile(name)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		meta := make(metadata.Metadata)
 		if err := yaml.Unmarshal(data, meta); err != nil {
-			log.Fatal(err)
+			return err
 		}
 		// Конвертируем описание метаданных в метаданные
 		// Добавляем язык
 		if lang := meta.Lang(); lang != "" {
 			pubmeta.Language.Add("", lang)
+			publang = lang
 		}
 		// Добавляем заголовок
 		if title := meta.Title(); title != "" {
@@ -126,7 +129,7 @@ func main() {
 			pubmeta.Publisher.Add("", author)
 		}
 		// Добавляем уникальные идентификаторы
-		for _, name := range []string{"UUID", "id", "identifier", "DOI", "ISBN", "ISSN"} {
+		for _, name := range []string{"uuid", "id", "identifier", "doi", "isbn", "issn"} {
 			if value := meta.Get(name); value != "" {
 				pubmeta.Identifier.Add(name, value)
 			}
@@ -157,22 +160,29 @@ func main() {
 		}
 		break
 	}
+	// Создаем упаковщик в формат EPUB
+	writer, err := epub.Create(filepath.Join(currentPath, outputFilename))
+	if err != nil {
+		return err
+	}
+	defer writer.Close()
 	// Добавляем метаданные в публикацию
 	writer.Metadata = pubmeta
 	// Функция для добавления файла в публикацию
-	addFile := func(filename string, spine bool, properties ...string) {
+	addFile := func(filename string, spine bool, properties ...string) error {
 		file, err := os.Open(filename)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		defer file.Close()
 		fileWriter, err := writer.Add(filename, spine, properties...)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if _, err := io.Copy(fileWriter, file); err != nil {
-			log.Fatal(err)
+			return err
 		}
+		return nil
 	}
 	// Инициализируем преобразование из формата Markdown
 	htmlFlags := 0
@@ -213,7 +223,9 @@ func main() {
 				return nil
 			}
 			log.Println("Add cover image:", filename)
-			addFile(filename, false, "cover-image")
+			if err := addFile(filename, false, "cover-image"); err != nil {
+				return err
+			}
 			setCover = true
 		// Другие файлы
 		default:
@@ -225,7 +237,7 @@ func main() {
 				// Читаем файл и отделяем метаданные
 				meta, data, err := metadata.ReadFile(filename)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				// Преобразуем из Markdown в HTML
 				data = blackfriday.Markdown(data, markdownRender, extensions)
@@ -235,37 +247,49 @@ func main() {
 				meta["content"] = template.HTML(data)
 				// Если не указан язык, то считаем, что он русский.
 				if _, ok := meta["lang"]; !ok {
-					meta["lang"] = "ru"
+					meta["lang"] = publang
 				}
 				// Изменяем расширение имени файла на .xhtml
 				filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".xhtml"
 				// Добавляем в основной список чтения, если имя файла не начинается с подчеркивания
 				fileWriter, err := writer.Add(filename, filepath.Base(filename)[0] != '_')
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
 				// Добавляем в начало документа XML-заголовок
-				io.WriteString(fileWriter, xml.Header)
+				if _, err := io.WriteString(fileWriter, xml.Header); err != nil {
+					return err
+				}
 				// Преобразуем по шаблону и записываем в публикацию.
 				if err := tpage.Execute(fileWriter, meta); err != nil {
-					log.Fatal(err)
+					return err
 				}
 			// Иллюстрация — добавляем в публикацию как есть
 			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg":
 				log.Println("Add image:", filename)
-				addFile(filename, false)
+				if err := addFile(filename, false); err != nil {
+					return err
+				}
 			case ".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r":
 				log.Println("Add media:", filename)
-				addFile(filename, false)
+				if err := addFile(filename, false); err != nil {
+					return err
+				}
 			case ".css", ".js", ".javascript":
 				log.Println("Add css or javascript:", filename)
-				addFile(filename, false)
+				if err := addFile(filename, false); err != nil {
+					return err
+				}
 			case ".otf", ".woff":
 				log.Println("Add font:", filename)
-				addFile(filename, false)
+				if err := addFile(filename, false); err != nil {
+					return err
+				}
 			case ".pls", ".smil", ".smi", ".sml":
 				log.Println("Add smil:", filename)
-				addFile(filename, false)
+				if err := addFile(filename, false); err != nil {
+					return err
+				}
 			// Другое — игнорируем
 			default:
 				log.Println("Ignore:", filename)
@@ -274,9 +298,7 @@ func main() {
 		return nil
 	}
 	// Перебираем все файлы и подкаталоги в исходном каталоге
-	if err := filepath.Walk(".", walkFn); err != nil {
-		log.Fatal(err)
-	}
+	return filepath.Walk(".", walkFn)
 }
 
 const pageTemplateText = `<!DOCTYPE html>
