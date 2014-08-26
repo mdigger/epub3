@@ -4,26 +4,9 @@ import (
 	"html/template"
 )
 
-var (
-	tpage = template.Must(template.New("").Parse(pageTemplateText))
-	tnav  = template.Must(template.New("").Parse(navTemplateText))
-)
+var tnav = template.Must(template.New("").Parse(navTemplateText))
 
-const (
-	pageTemplateText = `<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{{ if .lang }}{{ .lang }}{{ else }}en{{ end }}">
-<head>
-<meta charset="UTF-8" />
-<title>{{ .title }}</title>
-</head>
-<body>
-{{ if .title }}<h1>{{ .title }}</h1>
-
-{{ end }}{{ .content }}
-</body>
-</html>`
-
-	navTemplateText = `<!DOCTYPE html>
+const navTemplateText = `<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{{ if .lang }}{{ .lang }}{{ else }}en{{ end }}">
 <head>
 <meta charset="UTF-8" />
@@ -38,4 +21,3 @@ const (
 </nav>
 </body>
 </html>`
-)

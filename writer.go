@@ -94,7 +94,7 @@ func (self *Writer) AddFile(sourceFilename, filename string, spine bool, propert
 		return err
 	}
 	defer file.Close()
-	fileWriter, err := self.Writer(filename, spine, properties...)
+	fileWriter, err := self.Add(filename, spine, properties...)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (self *Writer) AddFile(sourceFilename, filename string, spine bool, propert
 	return nil
 }
 
-func (self *Writer) Writer(filename string, spine bool, properties ...string) (io.Writer, error) {
+func (self *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
 	filename = filepath.ToSlash(filename) // Нормализуем имя файла
 	// Проверяем, что файла с таким именем еще нет в публикации.
 	// Иначе возвращаем ошибку.

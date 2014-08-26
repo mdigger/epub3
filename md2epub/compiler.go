@@ -5,7 +5,6 @@ import (
 	"github.com/mdigger/epub3"
 	"github.com/mdigger/metadata"
 	"github.com/russross/blackfriday"
-	"html/template"
 	"io"
 	"log"
 	"os"
@@ -60,12 +59,6 @@ func compiler(sourcePath, outputFilename string) error {
 	defer writer.Close()
 	// Добавляем метаданные в публикацию
 	writer.Metadata = pubMetadata
-	// Инициализируем преобразование из формата Markdown
-	htmlFlags := 0
-	htmlFlags |= blackfriday.HTML_USE_XHTML
-	htmlFlags |= blackfriday.HTML_USE_SMARTYPANTS
-	htmlFlags |= blackfriday.HTML_SMARTYPANTS_FRACTIONS
-	markdownRender := blackfriday.HtmlRenderer(htmlFlags, "", "")
 	extensions := 0
 	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
 	extensions |= blackfriday.EXTENSION_TABLES
@@ -97,21 +90,21 @@ func compiler(sourcePath, outputFilename string) error {
 			if err != nil {
 				return err
 			}
+			lang := meta.Lang()
+			if lang == "" {
+				lang = publang
+			}
+			markdownRender := &Html{
+				title: meta.Title(),
+				lang:  lang,
+			}
 			// Преобразуем из Markdown в HTML
 			data = blackfriday.Markdown(data, markdownRender, extensions)
-			// Сохраняем результат прямо в метаданных под именем content.
-			// Предварительно "оборачиваем" в шаблонное представление HTML,
-			// чтобы он не декодировался.
-			meta["content"] = template.HTML(data)
-			// Если не указан язык, то считаем, что он русский.
-			if _, ok := meta["lang"]; !ok {
-				meta["lang"] = publang
-			}
 			// Изменяем расширение имени файла на .xhtml
 			filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".xhtml"
 			// Добавляем в основной список чтения, если имя файла не начинается с подчеркивания
 			spine := filepath.Base(filename)[0] != '_'
-			fileWriter, err := writer.Writer(filename, spine)
+			fileWriter, err := writer.Add(filename, spine)
 			if err != nil {
 				return err
 			}
@@ -119,10 +112,13 @@ func compiler(sourcePath, outputFilename string) error {
 			if _, err := io.WriteString(fileWriter, xml.Header); err != nil {
 				return err
 			}
-			// Преобразуем по шаблону и записываем в публикацию.
-			if err := tpage.Execute(fileWriter, meta); err != nil {
+			if _, err := fileWriter.Write(data); err != nil {
 				return err
 			}
+			// // Преобразуем по шаблону и записываем в публикацию.
+			// if err := tpage.Execute(fileWriter, meta); err != nil {
+			// 	return err
+			// }
 			title := meta.Title()
 			if title == "" {
 				title = "* * *"
@@ -170,7 +166,7 @@ func compiler(sourcePath, outputFilename string) error {
 		return err
 	}
 	// Добавляем оглавление
-	fileWriter, err := writer.Writer("toc.xhtml", false, "nav")
+	fileWriter, err := writer.Add("toc.xhtml", false, "nav")
 	if err != nil {
 		return err
 	}
