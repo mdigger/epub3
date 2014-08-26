@@ -128,6 +128,8 @@ func (self *Writer) Add(filename string, spine bool, properties ...string) (io.W
 		mimetype = "text/css"
 	case ".js", ".javascript":
 		mimetype = "text/javascript"
+	case ".json":
+		mimetype = "application/json"
 	default:
 		if mimetype = mime.TypeByExtension(ext); mimetype == "" {
 			mimetype = "application/octet-stream"
