@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func main() {
@@ -51,6 +52,112 @@ func main() {
 		log.Fatal(err)
 	}
 	defer writer.Close()
+	// Инициализируем описание метаданных
+	pubmeta := &epub.Metadata{
+		DC:   "http://purl.org/dc/elements/1.1/",
+		Meta: make([]*epub.Meta, 0),
+	}
+	// Загружаем описание метаданных публикации
+	for _, name := range []string{"metadata.yml", "metadata.yaml", "metadata.json"} {
+		fi, err := os.Stat(name)
+		if err != nil || fi.IsDir() {
+			continue
+		}
+		data, err := ioutil.ReadFile(name)
+		if err != nil {
+			log.Fatal(err)
+		}
+		meta := make(metadata.Metadata)
+		if err := yaml.Unmarshal(data, meta); err != nil {
+			log.Fatal(err)
+		}
+		// Конвертируем описание метаданных в метаданные
+		// Добавляем язык
+		if lang := meta.Lang(); lang != "" {
+			pubmeta.Language.Add("", lang)
+		}
+		// Добавляем заголовок
+		if title := meta.Title(); title != "" {
+			pubmeta.Title.Add("title", title)
+			pubmeta.Meta = append(pubmeta.Meta, &epub.Meta{
+				Refines:  "#title",
+				Property: "title-type",
+				Value:    "main",
+			})
+		}
+		// Добавляем подзаголовок
+		if subtitle := meta.Subtitle(); subtitle != "" {
+			pubmeta.Title.Add("subtitle", subtitle)
+			pubmeta.Meta = append(pubmeta.Meta, &epub.Meta{
+				Refines:  "#subtitle",
+				Property: "title-type",
+				Value:    "subtitle",
+			})
+		}
+		// Добавляем название коллекции
+		if collection := meta.Get("collection"); collection != "" {
+			pubmeta.Title.Add("collection", collection)
+			pubmeta.Meta = append(pubmeta.Meta, &epub.Meta{
+				Refines:  "#collection",
+				Property: "title-type",
+				Value:    "collection",
+			})
+		}
+		// Добавляем название редакции
+		if edition := meta.Get("edition"); edition != "" {
+			pubmeta.Title.Add("edition", edition)
+			pubmeta.Meta = append(pubmeta.Meta, &epub.Meta{
+				Refines:  "#edition",
+				Property: "title-type",
+				Value:    "edition",
+			})
+		}
+		// Добавляем авторов
+		for _, author := range meta.Authors() {
+			pubmeta.Creator.Add("", author)
+		}
+		// Добавляем второстепенных авторов
+		for _, author := range meta.GetList("contributor") {
+			pubmeta.Contributor.Add("", author)
+		}
+		// Добавляем информацию об издателях
+		for _, author := range meta.GetList("publisher") {
+			pubmeta.Publisher.Add("", author)
+		}
+		// Добавляем уникальные идентификаторы
+		for _, name := range []string{"UUID", "id", "identifier", "DOI", "ISBN", "ISSN"} {
+			if value := meta.Get(name); value != "" {
+				pubmeta.Identifier.Add(name, value)
+			}
+		}
+		// Добавляем краткое описание
+		if description := meta.Description(); description != "" {
+			pubmeta.Description.Add("description", description)
+		}
+		// Добавляем ключевые слова
+		for _, keyword := range meta.Keywords() {
+			pubmeta.Subject.Add("", keyword)
+		}
+		// Добавляем описание сферы действия
+		if coverage := meta.Get("coverage"); coverage != "" {
+			pubmeta.Coverage.Add("", coverage)
+		}
+		// Добавляем дату
+		if date := meta.Date(); !date.IsZero() {
+			pubmeta.Date = &epub.Element{
+				Value: date.UTC().Format(time.RFC3339),
+			}
+		}
+		// Добавляем копирайты
+		for _, name := range []string{"copyright", "rights"} {
+			if rights := meta.Get(name); rights != "" {
+				pubmeta.Rights.Add(name, rights)
+			}
+		}
+		break
+	}
+	// Добавляем метаданные в публикацию
+	writer.Metadata = pubmeta
 	// Инициализируем преобразование из формата Markdown
 	htmlFlags := 0
 	htmlFlags |= blackfriday.HTML_USE_XHTML
@@ -66,8 +173,8 @@ func main() {
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
-	// Флаги для избежания двойной обработки метаданных и обложки
-	var setCover, setMetada bool
+	// Флаг для избежания двойной обработки обложки
+	var setCover bool
 	// Определяем функция для обработки перебора файлов и каталогов
 	walkFn := func(filename string, finfo os.FileInfo, err error) error {
 		// Игнорируем, если открытие файла произошло с ошибкой
@@ -80,22 +187,9 @@ func main() {
 		}
 		// Проверяем по имени файла
 		switch filename {
-		// Описание метаданных публикации
+		// Описание метаданных публикации — уже загружено, если было
 		case "metadata.yml", "metadata.yaml", "metadata.json":
-			if setMetada {
-				log.Println("Ignore duplicate metadata:", filename)
-				return nil
-			}
-			data, err := ioutil.ReadFile(filename)
-			if err != nil {
-				log.Fatal(err)
-			}
-			meta := make(metadata.Metadata)
-			if err := yaml.Unmarshal(data, meta); err != nil {
-				log.Fatal(err)
-			}
-			// TODO: заполнить метаданные
-			setMetada = true
+			return nil
 		// Обложка публикации
 		case "cover.gif", "cover.jpg", "cover.jpeg", "cover.png", "cover.svg":
 			if setCover {
