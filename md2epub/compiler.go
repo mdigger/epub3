@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/xml"
-	"flag"
+	"fmt"
 	"github.com/mdigger/epub3"
 	"github.com/mdigger/metadata"
 	"github.com/russross/blackfriday"
@@ -14,28 +14,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
-
-func main() {
-	log.SetFlags(0)
-	// Разбираем входящие параметры
-	flag.Parse()
-	if flag.NArg() < 1 {
-		flag.Usage()
-		os.Exit(1)
-	}
-	sourcePath := flag.Arg(0)
-	var outputFilename string // Имя результирующего файла с публикацией
-	if flag.NArg() > 1 {
-		outputFilename = flag.Arg(1)
-	} else {
-		outputFilename = filepath.Base(sourcePath) + ".epub"
-	}
-	if err := compiler(sourcePath, outputFilename); err != nil {
-		log.Fatal(err)
-	}
-}
 
 // Компилятор публикации
 func compiler(sourcePath, outputFilename string) error {
@@ -74,11 +55,14 @@ func compiler(sourcePath, outputFilename string) error {
 		if err := yaml.Unmarshal(data, meta); err != nil {
 			return err
 		}
+		log.Print(strings.Repeat("—", 80))
+		tab := tabwriter.NewWriter(os.Stdout, 8, 1, 1, ' ', 0)
 		// Конвертируем описание метаданных в метаданные
 		// Добавляем язык
 		if lang := meta.Lang(); lang != "" {
 			pubmeta.Language.Add("", lang)
 			publang = lang
+			fmt.Fprintf(tab, "Lang:\t%s\n", lang)
 		}
 		// Добавляем заголовок
 		if title := meta.Title(); title != "" {
@@ -88,6 +72,7 @@ func compiler(sourcePath, outputFilename string) error {
 				Property: "title-type",
 				Value:    "main",
 			})
+			fmt.Fprintf(tab, "Title:\t%s\n", title)
 		}
 		// Добавляем подзаголовок
 		if subtitle := meta.Subtitle(); subtitle != "" {
@@ -97,6 +82,7 @@ func compiler(sourcePath, outputFilename string) error {
 				Property: "title-type",
 				Value:    "subtitle",
 			})
+			fmt.Fprintf(tab, "Subtitle:\t%s\n", subtitle)
 		}
 		// Добавляем название коллекции
 		if collection := meta.Get("collection"); collection != "" {
@@ -106,6 +92,7 @@ func compiler(sourcePath, outputFilename string) error {
 				Property: "title-type",
 				Value:    "collection",
 			})
+			fmt.Fprintf(tab, "Collection:\t%s\n", collection)
 		}
 		// Добавляем название редакции
 		if edition := meta.Get("edition"); edition != "" {
@@ -115,23 +102,40 @@ func compiler(sourcePath, outputFilename string) error {
 				Property: "title-type",
 				Value:    "edition",
 			})
+			fmt.Fprintf(tab, "Edition:\t%s\n", edition)
 		}
 		// Добавляем авторов
-		for _, author := range meta.Authors() {
+		for i, author := range meta.Authors() {
 			pubmeta.Creator.Add("", author)
+			if i == 0 {
+				fmt.Fprintf(tab, "Author:\t%s\n", author)
+			} else {
+				fmt.Fprintf(tab, "\t%s\n", author)
+			}
 		}
 		// Добавляем второстепенных авторов
-		for _, author := range meta.GetList("contributor") {
+		for i, author := range meta.GetList("contributor") {
 			pubmeta.Contributor.Add("", author)
+			if i == 0 {
+				fmt.Fprintf(tab, "Contributor:\t%s\n", author)
+			} else {
+				fmt.Fprintf(tab, "\t%s\n", author)
+			}
 		}
 		// Добавляем информацию об издателях
-		for _, author := range meta.GetList("publisher") {
+		for i, author := range meta.GetList("publisher") {
 			pubmeta.Publisher.Add("", author)
+			if i == 0 {
+				fmt.Fprintf(tab, "Publisher:\t%s\n", author)
+			} else {
+				fmt.Fprintf(tab, "\t%s\n", author)
+			}
 		}
 		// Добавляем уникальные идентификаторы
 		for _, name := range []string{"uuid", "id", "identifier", "doi", "isbn", "issn"} {
 			if value := meta.Get(name); value != "" {
 				pubmeta.Identifier.Add(name, value)
+				fmt.Fprintf(tab, "%s:\t%s\n", strings.ToUpper(name), value)
 			}
 		}
 		// Добавляем краткое описание
@@ -139,8 +143,11 @@ func compiler(sourcePath, outputFilename string) error {
 			pubmeta.Description.Add("description", description)
 		}
 		// Добавляем ключевые слова
-		for _, keyword := range meta.Keywords() {
-			pubmeta.Subject.Add("", keyword)
+		if keywords := meta.Keywords(); len(keywords) > 0 {
+			for _, keyword := range keywords {
+				pubmeta.Subject.Add("", keyword)
+			}
+			fmt.Fprintf(tab, "Keywords:\t%s\n", strings.Join(keywords, ", "))
 		}
 		// Добавляем описание сферы действия
 		if coverage := meta.Get("coverage"); coverage != "" {
@@ -156,8 +163,11 @@ func compiler(sourcePath, outputFilename string) error {
 		for _, name := range []string{"copyright", "rights"} {
 			if rights := meta.Get(name); rights != "" {
 				pubmeta.Rights.Add(name, rights)
+				fmt.Fprintf(tab, "%s:\t%s\n", strings.Title(name), rights)
 			}
 		}
+		tab.Flush()
+		log.Print(strings.Repeat("—", 80))
 		break
 	}
 	// Создаем упаковщик в формат EPUB
