@@ -91,7 +91,7 @@ func main() {
 			}
 			// TODO: заполнить метаданные
 			setMetada = true
-		case "cover.gif", "cover.jpg", "cover.jpeg", "cover.png":
+		case "cover.gif", "cover.jpg", "cover.jpeg", "cover.png", "cover.svg":
 			if setCover {
 				log.Println("Ignore duplicate cover image:", filename)
 				return nil
