@@ -53,12 +53,6 @@ func main() {
 		log.Fatal(err)
 	}
 	defer os.Chdir(currentPath)
-	// Создаем описание публикации
-	// meta := epub.CreateMetadata(map[string]string{
-	// 	"title":  "Тестовая публикация",
-	// 	"lang":   "ru",
-	// 	"author": "Дмитрий Седых",
-	// })
 	// Инициализируем шаблон для преобразования страниц
 	tpage, err := template.New("").Parse(pageTemplateText)
 	if err != nil {
@@ -135,7 +129,7 @@ func main() {
 				if _, ok := meta["lang"]; !ok {
 					meta["lang"] = "ru"
 				}
-				// Изменяем расширение имени файла на .html
+				// Изменяем расширение имени файла на .xhtml
 				filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".xhtml"
 				// TODO: добавлять в spine или нет, в зависимости от имени.
 				fileWriter, err := writer.Add(filename, true)
@@ -169,7 +163,7 @@ func main() {
 		return nil
 	}
 	// Перебираем все файлы и подкаталоги в исходном каталоге
-	if err = filepath.Walk(".", walkFn); err != nil {
+	if err := filepath.Walk(".", walkFn); err != nil {
 		log.Fatal(err)
 	}
 }
