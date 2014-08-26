@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/kr/pretty"
 	"github.com/mdigger/epub3"
 	"github.com/mdigger/metadata"
 	"github.com/russross/blackfriday"
@@ -212,6 +213,8 @@ func compiler(sourcePath, outputFilename string) error {
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
 	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
+	// Оглавление
+	nav := make(Navigaton, 0)
 	// Флаг для избежания двойной обработки обложки: после его установки
 	// новые попадающиеся обложки игнорируются.
 	var setCover bool
@@ -266,7 +269,8 @@ func compiler(sourcePath, outputFilename string) error {
 				// Изменяем расширение имени файла на .xhtml
 				filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".xhtml"
 				// Добавляем в основной список чтения, если имя файла не начинается с подчеркивания
-				fileWriter, err := writer.Add(filename, filepath.Base(filename)[0] != '_')
+				spine := filepath.Base(filename)[0] != '_'
+				fileWriter, err := writer.Add(filename, spine)
 				if err != nil {
 					return err
 				}
@@ -278,6 +282,13 @@ func compiler(sourcePath, outputFilename string) error {
 				if err := tpage.Execute(fileWriter, meta); err != nil {
 					return err
 				}
+				// Добавляем информацию о файле в оглавление
+				nav = append(nav, &NavigationItem{
+					Title:    meta.Title(),
+					Subtitle: meta.Subtitle(),
+					Filename: filename,
+					Spine:    spine,
+				})
 			// Иллюстрации и другие файлы
 			case ".jpg", ".jpe", ".jpeg", ".png", ".gif", ".svg",
 				".mp3", ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r",
@@ -297,7 +308,11 @@ func compiler(sourcePath, outputFilename string) error {
 		return nil
 	}
 	// Перебираем все файлы и подкаталоги в исходном каталоге
-	return filepath.Walk(".", walkFn)
+	if err := filepath.Walk(".", walkFn); err != nil {
+		return err
+	}
+	pretty.Println(nav)
+	return nil
 }
 
 const pageTemplateText = `<!DOCTYPE html>
