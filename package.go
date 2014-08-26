@@ -109,10 +109,9 @@ func (self *Elements) Add(id, value string) {
 
 // Element with optional ID, xml:lang & dir
 type LangElement struct {
-	Id    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
-	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
-	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
-	Value string `xml:",chardata"`
+	Element
+	Lang string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir  string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
 }
 
 type LangElements []*LangElement
@@ -122,7 +121,7 @@ func (self *LangElements) Add(id, value string) {
 		elements := make(LangElements, 0)
 		self = &elements
 	}
-	*self = append(*self, &LangElement{Id: id, Value: value})
+	*self = append(*self, &LangElement{Element: Element{Id: id, Value: value}})
 }
 
 // The meta element provides a generic means of including package metadata, allowing the expression
