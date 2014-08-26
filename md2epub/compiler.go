@@ -59,11 +59,14 @@ func compiler(sourcePath, outputFilename string) error {
 		tab := tabwriter.NewWriter(os.Stdout, 8, 1, 1, ' ', 0)
 		// Конвертируем описание метаданных в метаданные
 		// Добавляем язык
-		if lang := meta.Lang(); lang != "" {
-			pubmeta.Language.Add("", lang)
+		lang := meta.Lang()
+		if lang == "" {
+			lang = publang
+		} else {
 			publang = lang
-			fmt.Fprintf(tab, "Lang:\t%s\n", lang)
 		}
+		pubmeta.Language.Add("", lang)
+		fmt.Fprintf(tab, "Lang:\t%s\n", lang)
 		// Добавляем заголовок
 		if title := meta.Title(); title != "" {
 			pubmeta.Title.Add("title", title)
