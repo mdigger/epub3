@@ -94,10 +94,11 @@ func compiler(sourcePath, outputFilename string) error {
 			if lang == "" {
 				lang = publang
 			}
-			markdownRender := &Html{
-				title: meta.Title(),
-				lang:  lang,
+			title := meta.Title()
+			if title == "" {
+				title = "* * *"
 			}
+			markdownRender := NewHtmlRenderRender(lang, title, "")
 			// Преобразуем из Markdown в HTML
 			data = blackfriday.Markdown(data, markdownRender, extensions)
 			// Изменяем расширение имени файла на .xhtml
@@ -114,14 +115,6 @@ func compiler(sourcePath, outputFilename string) error {
 			}
 			if _, err := fileWriter.Write(data); err != nil {
 				return err
-			}
-			// // Преобразуем по шаблону и записываем в публикацию.
-			// if err := tpage.Execute(fileWriter, meta); err != nil {
-			// 	return err
-			// }
-			title := meta.Title()
-			if title == "" {
-				title = "* * *"
 			}
 			// Добавляем информацию о файле в оглавление
 			nav = append(nav, &NavigationItem{
