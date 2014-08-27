@@ -82,7 +82,7 @@ func (self *HtmlRender) Header(out *bytes.Buffer, text func() bool, level int, i
 }
 
 func (self *HtmlRender) HRule(out *bytes.Buffer) {
-	out.WriteString("<hr />")
+	out.WriteString("<hr />\n")
 }
 
 func (self *HtmlRender) List(out *bytes.Buffer, text func() bool, flags int) {
