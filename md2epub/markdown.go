@@ -2,12 +2,32 @@ package main
 
 import (
 	"bytes"
+	"encoding/xml"
 	"fmt"
 	"github.com/russross/blackfriday"
 	"html"
+	"log"
 	"strconv"
 	"strings"
 )
+
+var extensions = 0
+
+func init() {
+	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+	extensions |= blackfriday.EXTENSION_TABLES
+	extensions |= blackfriday.EXTENSION_FENCED_CODE
+	extensions |= blackfriday.EXTENSION_AUTOLINK
+	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+	// extensions |= blackfriday.EXTENSION_LAX_HTML_BLOCKS
+	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+	// extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
+	// extensions |= blackfriday.EXTENSION_TAB_SIZE_EIGHT
+	extensions |= blackfriday.EXTENSION_FOOTNOTES
+	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
+	extensions |= blackfriday.EXTENSION_HEADER_IDS
+	// extensions |= blackfriday.EXTENSION_TITLEBLOCK
+}
 
 type HtmlRender struct {
 	lang         string
@@ -122,7 +142,7 @@ func (self *HtmlRender) Paragraph(out *bytes.Buffer, text func() bool) {
 func (self *HtmlRender) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
 	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
-	out.WriteString("</thead>\n\n<tbody>\n")
+	out.WriteString("</thead>\n<tbody>\n")
 	out.Write(body)
 	out.WriteString("</tbody>\n</table>\n")
 }
@@ -164,18 +184,15 @@ func (self *HtmlRender) TableCell(out *bytes.Buffer, text []byte, align int) {
 }
 
 func (self *HtmlRender) Footnotes(out *bytes.Buffer, text func() bool) {
-	out.WriteString("<div class=\"footnotes\">\n")
-	self.HRule(out)
-	self.List(out, text, blackfriday.LIST_TYPE_ORDERED)
-	out.WriteString("</div>\n")
+	text()
 }
 
 func (self *HtmlRender) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-	out.WriteString(`<li id="fn:`)
+	out.WriteString(`<aside id="fn:`)
 	out.Write(slugify(name))
-	out.WriteString(`">`)
+	out.WriteString(`" epub:type="footnote">`)
 	out.Write(text)
-	out.WriteString("</li>\n")
+	out.WriteString("</aside>\n")
 }
 
 func (self *HtmlRender) TitleBlock(out *bytes.Buffer, text []byte) {
@@ -275,17 +292,27 @@ func (self *HtmlRender) StrikeThrough(out *bytes.Buffer, text []byte) {
 
 func (self *HtmlRender) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
-	out.WriteString(`<sup class="footnote-ref" id="fnref:`)
+	out.WriteString(`<a rel="footnote" href="#fn:`)
 	out.Write(slug)
-	out.WriteString(`"><a rel="footnote" href="#fn:`)
-	out.Write(slug)
-	out.WriteString(`">`)
+	out.WriteString(`" epub:type="noteref">`)
 	out.WriteString(strconv.Itoa(id))
-	out.WriteString(`</a></sup>`)
+	out.WriteString(`</a>`)
 }
 
 func (self *HtmlRender) Entity(out *bytes.Buffer, entity []byte) {
-	out.Write(entity)
+	if len(entity) > 3 {
+		switch ent := string(entity[1 : len(entity)-1]); ent {
+		case "amp", "lt", "gt", "quot", "apos":
+			out.Write(entity)
+			return
+		default:
+			if sym, ok := xml.HTMLEntity[ent]; ok {
+				out.WriteString(sym)
+				return
+			}
+		}
+	}
+	out.WriteString(html.EscapeString(string(entity)))
 }
 
 func (self *HtmlRender) NormalText(out *bytes.Buffer, text []byte) {
@@ -313,7 +340,7 @@ func (self *HtmlRender) NormalText(out *bytes.Buffer, text []byte) {
 
 func (self *HtmlRender) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("<!DOCTYPE html>\n")
-	out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\"")
+	out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\"")
 	if self.lang != "" {
 		out.WriteString(" xml:lang=\"")
 		out.WriteString(self.lang)

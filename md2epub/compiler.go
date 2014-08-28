@@ -59,15 +59,6 @@ func compiler(sourcePath, outputFilename string) error {
 	defer writer.Close()
 	// Добавляем метаданные в публикацию
 	writer.Metadata = pubMetadata
-	extensions := 0
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
-	extensions |= blackfriday.EXTENSION_HEADER_IDS
 	// Оглавление
 	nav := make(Navigaton, 0)
 	// Флаг для избежания двойной обработки обложки: после его установки
