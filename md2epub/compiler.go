@@ -125,8 +125,10 @@ func compiler(sourcePath, outputFilename string) error {
 			".otf", ".woff",
 			".pls", ".smil", ".smi", ".sml": // Иллюстрации и другие файлы
 			var properties []string
-			// Специальная обработка обложки
-			if !setCover && isFilename(filename, coverFiles) {
+			// Специальная обработка
+			switch {
+			case !setCover && isFilename(filename, coverFiles):
+				// Обложка
 				properties = []string{"cover-image"}
 				setCover = true
 			}
