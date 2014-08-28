@@ -101,6 +101,7 @@ func loadMetadata(name string) (pubmeta *epub.Metadata, err error) {
 		})
 		fmt.Fprintf(tab, "Edition:\t%s\n", edition)
 	}
+	// TODO: Добавить полный заголовок книги, с учетом всего вышеизложенного
 	// Добавляем авторов
 	for i, author := range meta.Authors() {
 		pubmeta.Creator.Add("", author)
