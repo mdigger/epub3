@@ -50,6 +50,10 @@ func loadMetadata(name string) (pubmeta *epub.Metadata, err error) {
 			Refines:  "#title",
 			Property: "title-type",
 			Value:    "main",
+		}, &epub.Meta{
+			Refines:  "#title",
+			Property: "display-seq",
+			Value:    "1",
 		})
 		fmt.Fprintf(tab, "Title:\t%s\n", title)
 	}
@@ -60,6 +64,10 @@ func loadMetadata(name string) (pubmeta *epub.Metadata, err error) {
 			Refines:  "#subtitle",
 			Property: "title-type",
 			Value:    "subtitle",
+		}, &epub.Meta{
+			Refines:  "#subtitle",
+			Property: "display-seq",
+			Value:    "2",
 		})
 		fmt.Fprintf(tab, "Subtitle:\t%s\n", subtitle)
 	}
@@ -78,8 +86,10 @@ func loadMetadata(name string) (pubmeta *epub.Metadata, err error) {
 				Property: "group-position",
 				Value:    collectionNumber,
 			})
+			fmt.Fprintf(tab, "Collection:\t%s (#%s)\n", collection, collectionNumber)
+		} else {
+			fmt.Fprintf(tab, "Collection:\t%s\n", collection)
 		}
-		fmt.Fprintf(tab, "Collection:\t%s\n", collection)
 	}
 	// Добавляем название редакции
 	if edition := meta.Get("edition"); edition != "" {
