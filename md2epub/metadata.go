@@ -71,6 +71,14 @@ func loadMetadata(name string) (pubmeta *epub.Metadata, err error) {
 			Property: "title-type",
 			Value:    "collection",
 		})
+		// Добавляем порядковый номер в коллекции, если он есть
+		if collectionNumber := meta.Get("sequence"); collectionNumber != "" {
+			pubmeta.Meta = append(pubmeta.Meta, &epub.Meta{
+				Refines:  "#collection",
+				Property: "group-position",
+				Value:    collectionNumber,
+			})
+		}
 		fmt.Fprintf(tab, "Collection:\t%s\n", collection)
 	}
 	// Добавляем название редакции
