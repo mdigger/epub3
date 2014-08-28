@@ -1,7 +1,3 @@
-samples
 *.epub
-md2epub/output
-md2epub/scomoroh-1
 md2epub/out
-
 md2epub/md2epub
