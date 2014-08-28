@@ -192,8 +192,8 @@ func (self *Writer) Close() (err error) {
 		}
 	}
 	if uid == "" {
-		metadata.Add("uid", "uid", uuid.New())
-		uid = "uid"
+		metadata.Add("uuid", "uuid", "urn:uuid:"+uuid.New())
+		uid = "uuid"
 	}
 	// Добавляем дату модификации
 	var setTime bool
