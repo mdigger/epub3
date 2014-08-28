@@ -22,7 +22,7 @@ func init() {
 	Extensions |= blackfriday.EXTENSION_STRIKETHROUGH
 	Extensions |= blackfriday.EXTENSION_LAX_HTML_BLOCKS
 	Extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	Extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
+	// Extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
 	// Extensions |= blackfriday.EXTENSION_TAB_SIZE_EIGHT
 	Extensions |= blackfriday.EXTENSION_FOOTNOTES
 	Extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
@@ -109,9 +109,9 @@ func (self *htmlRender) HRule(out *bytes.Buffer) {
 func (self *htmlRender) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&blackfriday.LIST_TYPE_ORDERED != 0 {
-		out.WriteString("<ol>")
+		out.WriteString("<ol>\n")
 	} else {
-		out.WriteString("<ul>")
+		out.WriteString("<ul>\n")
 	}
 	if !text() {
 		out.Truncate(marker)
