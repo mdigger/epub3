@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"github.com/mdigger/epub3"
+	"github.com/mdigger/epub3/markdown"
 	"github.com/mdigger/metadata"
 	"github.com/russross/blackfriday"
 	"io"
@@ -89,9 +90,10 @@ func compiler(sourcePath, outputFilename string) error {
 			if title == "" {
 				title = "* * *"
 			}
-			markdownRender := NewHtmlRenderRender(lang, title, "")
+			// Инициализируем HTML-преобразователь из формата Markdown
+			mdRender := markdown.NewRender(lang, title, "")
 			// Преобразуем из Markdown в HTML
-			data = blackfriday.Markdown(data, markdownRender, extensions)
+			data = blackfriday.Markdown(data, mdRender, markdown.Extensions)
 			// Изменяем расширение имени файла на .xhtml
 			filename = filename[:len(filename)-len(filepath.Ext(filename))] + ".xhtml"
 			// Добавляем в основной список чтения, если имя файла не начинается с подчеркивания

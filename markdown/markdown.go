@@ -1,4 +1,4 @@
-package main
+package markdown
 
 import (
 	"bytes"
@@ -10,25 +10,27 @@ import (
 	"strings"
 )
 
-var extensions = 0
+var (
+	Extensions = 0
+)
 
 func init() {
-	extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
-	extensions |= blackfriday.EXTENSION_TABLES
-	extensions |= blackfriday.EXTENSION_FENCED_CODE
-	extensions |= blackfriday.EXTENSION_AUTOLINK
-	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	extensions |= blackfriday.EXTENSION_LAX_HTML_BLOCKS
-	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
-	// extensions |= blackfriday.EXTENSION_TAB_SIZE_EIGHT
-	extensions |= blackfriday.EXTENSION_FOOTNOTES
-	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
-	extensions |= blackfriday.EXTENSION_HEADER_IDS
-	extensions |= blackfriday.EXTENSION_TITLEBLOCK
+	Extensions |= blackfriday.EXTENSION_NO_INTRA_EMPHASIS
+	Extensions |= blackfriday.EXTENSION_TABLES
+	Extensions |= blackfriday.EXTENSION_FENCED_CODE
+	Extensions |= blackfriday.EXTENSION_AUTOLINK
+	Extensions |= blackfriday.EXTENSION_STRIKETHROUGH
+	Extensions |= blackfriday.EXTENSION_LAX_HTML_BLOCKS
+	Extensions |= blackfriday.EXTENSION_SPACE_HEADERS
+	Extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
+	// Extensions |= blackfriday.EXTENSION_TAB_SIZE_EIGHT
+	Extensions |= blackfriday.EXTENSION_FOOTNOTES
+	Extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
+	Extensions |= blackfriday.EXTENSION_HEADER_IDS
+	Extensions |= blackfriday.EXTENSION_TITLEBLOCK
 }
 
-type HtmlRender struct {
+type htmlRender struct {
 	lang         string
 	title        string
 	csslink      string
@@ -38,8 +40,8 @@ type HtmlRender struct {
 	smartypants  *smartypantsRenderer
 }
 
-func NewHtmlRenderRender(lang, title, csslink string) *HtmlRender {
-	return &HtmlRender{
+func NewRender(lang, title, csslink string) *htmlRender {
+	return &htmlRender{
 		lang:         lang,
 		title:        title,
 		csslink:      csslink,
@@ -50,7 +52,7 @@ func NewHtmlRenderRender(lang, title, csslink string) *HtmlRender {
 	}
 }
 
-func (self *HtmlRender) BlockCode(out *bytes.Buffer, text []byte, lang string) {
+func (self *htmlRender) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	count := 0
 	for _, elt := range strings.Fields(lang) {
 		if elt[0] == '.' {
@@ -72,18 +74,18 @@ func (self *HtmlRender) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 	out.WriteString("</code></pre>\n")
 }
 
-func (self *HtmlRender) BlockQuote(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) BlockQuote(out *bytes.Buffer, text []byte) {
 	out.WriteString("<blockquote>\n")
 	out.Write(text)
 	out.WriteString("</blockquote>\n")
 }
 
-func (self *HtmlRender) BlockHtml(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) BlockHtml(out *bytes.Buffer, text []byte) {
 	out.Write(text)
 	out.WriteByte('\n')
 }
 
-func (self *HtmlRender) Header(out *bytes.Buffer, text func() bool, level int, id string) {
+func (self *htmlRender) Header(out *bytes.Buffer, text func() bool, level int, id string) {
 	marker := out.Len()
 	if id != "" {
 		out.WriteString(fmt.Sprintf("<h%d id=\"%s\">", level, id))
@@ -100,11 +102,11 @@ func (self *HtmlRender) Header(out *bytes.Buffer, text func() bool, level int, i
 	out.WriteString(fmt.Sprintf("</h%d>\n", level))
 }
 
-func (self *HtmlRender) HRule(out *bytes.Buffer) {
+func (self *htmlRender) HRule(out *bytes.Buffer) {
 	out.WriteString("<hr />\n")
 }
 
-func (self *HtmlRender) List(out *bytes.Buffer, text func() bool, flags int) {
+func (self *htmlRender) List(out *bytes.Buffer, text func() bool, flags int) {
 	marker := out.Len()
 	if flags&blackfriday.LIST_TYPE_ORDERED != 0 {
 		out.WriteString("<ol>")
@@ -122,13 +124,13 @@ func (self *HtmlRender) List(out *bytes.Buffer, text func() bool, flags int) {
 	}
 }
 
-func (self *HtmlRender) ListItem(out *bytes.Buffer, text []byte, flags int) {
+func (self *htmlRender) ListItem(out *bytes.Buffer, text []byte, flags int) {
 	out.WriteString("<li>")
 	out.Write(text)
 	out.WriteString("</li>\n")
 }
 
-func (self *HtmlRender) Paragraph(out *bytes.Buffer, text func() bool) {
+func (self *htmlRender) Paragraph(out *bytes.Buffer, text func() bool) {
 	marker := out.Len()
 	out.WriteString("<p>")
 	if !text() {
@@ -138,7 +140,7 @@ func (self *HtmlRender) Paragraph(out *bytes.Buffer, text func() bool) {
 	out.WriteString("</p>\n")
 }
 
-func (self *HtmlRender) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
+func (self *htmlRender) Table(out *bytes.Buffer, header []byte, body []byte, columnData []int) {
 	out.WriteString("<table>\n<thead>\n")
 	out.Write(header)
 	out.WriteString("</thead>\n<tbody>\n")
@@ -146,13 +148,13 @@ func (self *HtmlRender) Table(out *bytes.Buffer, header []byte, body []byte, col
 	out.WriteString("</tbody>\n</table>\n")
 }
 
-func (self *HtmlRender) TableRow(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) TableRow(out *bytes.Buffer, text []byte) {
 	out.WriteString("<tr>\n")
 	out.Write(text)
 	out.WriteString("\n</tr>\n")
 }
 
-func (self *HtmlRender) TableHeaderCell(out *bytes.Buffer, text []byte, flags int) {
+func (self *htmlRender) TableHeaderCell(out *bytes.Buffer, text []byte, flags int) {
 	switch flags {
 	case blackfriday.TABLE_ALIGNMENT_LEFT:
 		out.WriteString("<th align=\"left\">")
@@ -167,7 +169,7 @@ func (self *HtmlRender) TableHeaderCell(out *bytes.Buffer, text []byte, flags in
 	out.WriteString("</th>")
 }
 
-func (self *HtmlRender) TableCell(out *bytes.Buffer, text []byte, align int) {
+func (self *htmlRender) TableCell(out *bytes.Buffer, text []byte, align int) {
 	switch align {
 	case blackfriday.TABLE_ALIGNMENT_LEFT:
 		out.WriteString("<td align=\"left\">")
@@ -182,11 +184,11 @@ func (self *HtmlRender) TableCell(out *bytes.Buffer, text []byte, align int) {
 	out.WriteString("</td>")
 }
 
-func (self *HtmlRender) Footnotes(out *bytes.Buffer, text func() bool) {
+func (self *htmlRender) Footnotes(out *bytes.Buffer, text func() bool) {
 	text()
 }
 
-func (self *HtmlRender) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
+func (self *htmlRender) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
 	out.WriteString("<aside id=\"fn:")
 	out.Write(slugify(name))
 	out.WriteString("\" epub:type=\"footnote\">\n")
@@ -194,7 +196,7 @@ func (self *HtmlRender) FootnoteItem(out *bytes.Buffer, name, text []byte, flags
 	out.WriteString("</aside>\n")
 }
 
-func (self *HtmlRender) TitleBlock(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) TitleBlock(out *bytes.Buffer, text []byte) {
 	text = bytes.TrimPrefix(text, []byte("% "))
 	text = bytes.Replace(text, []byte("\n% "), []byte("\n"), -1)
 	out.WriteString("<h1 class=\"title\">")
@@ -202,7 +204,7 @@ func (self *HtmlRender) TitleBlock(out *bytes.Buffer, text []byte) {
 	out.WriteString("\n</h1>")
 }
 
-func (self *HtmlRender) AutoLink(out *bytes.Buffer, link []byte, kind int) {
+func (self *htmlRender) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	// skipRanges := htmlEntity.FindAllIndex(link, -1)
 	out.WriteString("<a href=\"")
 	if kind == blackfriday.LINK_TYPE_EMAIL {
@@ -222,19 +224,19 @@ func (self *HtmlRender) AutoLink(out *bytes.Buffer, link []byte, kind int) {
 	out.WriteString("</a>")
 }
 
-func (self *HtmlRender) CodeSpan(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) CodeSpan(out *bytes.Buffer, text []byte) {
 	out.WriteString("<code>")
 	out.WriteString(html.EscapeString(string(text)))
 	out.WriteString("</code>")
 }
 
-func (self *HtmlRender) DoubleEmphasis(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) DoubleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<strong>")
 	out.Write(text)
 	out.WriteString("</strong>")
 }
 
-func (self *HtmlRender) Emphasis(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) Emphasis(out *bytes.Buffer, text []byte) {
 	if len(text) == 0 {
 		return
 	}
@@ -243,7 +245,7 @@ func (self *HtmlRender) Emphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("</em>")
 }
 
-func (self *HtmlRender) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
+func (self *htmlRender) Image(out *bytes.Buffer, link []byte, title []byte, alt []byte) {
 	out.WriteString("<img src=\"")
 	out.WriteString(html.EscapeString(string(link)))
 	out.WriteString("\" alt=\"")
@@ -257,11 +259,11 @@ func (self *HtmlRender) Image(out *bytes.Buffer, link []byte, title []byte, alt 
 	out.WriteString("\" />")
 }
 
-func (self *HtmlRender) LineBreak(out *bytes.Buffer) {
+func (self *htmlRender) LineBreak(out *bytes.Buffer) {
 	out.WriteString("<br />")
 }
 
-func (self *HtmlRender) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
+func (self *htmlRender) Link(out *bytes.Buffer, link []byte, title []byte, content []byte) {
 	out.WriteString("<a href=\"")
 	out.WriteString(html.EscapeString(string(link)))
 	if len(title) > 0 {
@@ -273,23 +275,23 @@ func (self *HtmlRender) Link(out *bytes.Buffer, link []byte, title []byte, conte
 	out.WriteString("</a>")
 }
 
-func (self *HtmlRender) RawHtmlTag(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) RawHtmlTag(out *bytes.Buffer, text []byte) {
 	out.Write(text)
 }
 
-func (self *HtmlRender) TripleEmphasis(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) TripleEmphasis(out *bytes.Buffer, text []byte) {
 	out.WriteString("<strong><em>")
 	out.Write(text)
 	out.WriteString("</em></strong>")
 }
 
-func (self *HtmlRender) StrikeThrough(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) StrikeThrough(out *bytes.Buffer, text []byte) {
 	out.WriteString("<del>")
 	out.Write(text)
 	out.WriteString("</del>")
 }
 
-func (self *HtmlRender) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
+func (self *htmlRender) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
 	out.WriteString(`<sup><a rel="footnote" href="#fn:`)
 	out.Write(slug)
@@ -298,7 +300,7 @@ func (self *HtmlRender) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	out.WriteString(`</a></sup>`)
 }
 
-func (self *HtmlRender) Entity(out *bytes.Buffer, entity []byte) {
+func (self *htmlRender) Entity(out *bytes.Buffer, entity []byte) {
 	if len(entity) > 3 {
 		switch ent := string(entity[1 : len(entity)-1]); ent {
 		case "amp", "lt", "gt", "quot", "apos":
@@ -314,7 +316,7 @@ func (self *HtmlRender) Entity(out *bytes.Buffer, entity []byte) {
 	out.WriteString(html.EscapeString(string(entity)))
 }
 
-func (self *HtmlRender) NormalText(out *bytes.Buffer, text []byte) {
+func (self *htmlRender) NormalText(out *bytes.Buffer, text []byte) {
 	// out.WriteString(html.EscapeString(string(text)))
 	smrt := smartypantsData{false, false}
 	text = []byte(html.EscapeString(string(text)))
@@ -337,7 +339,7 @@ func (self *HtmlRender) NormalText(out *bytes.Buffer, text []byte) {
 	}
 }
 
-func (self *HtmlRender) DocumentHeader(out *bytes.Buffer) {
+func (self *htmlRender) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("<!DOCTYPE html>\n")
 	out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\"")
 	if self.lang != "" {
@@ -360,16 +362,16 @@ func (self *HtmlRender) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("<body>\n")
 }
 
-func (self *HtmlRender) DocumentFooter(out *bytes.Buffer) {
+func (self *htmlRender) DocumentFooter(out *bytes.Buffer) {
 	out.WriteString("</body>\n")
 	out.WriteString("</html>\n")
 }
 
-func (self *HtmlRender) GetFlags() int {
+func (self *htmlRender) GetFlags() int {
 	return 0
 }
 
-func (self *HtmlRender) TocHeader(text []byte, level int) {
+func (self *htmlRender) TocHeader(text []byte, level int) {
 	for level > self.currentLevel {
 		switch {
 		case bytes.HasSuffix(self.toc.Bytes(), []byte("</li>\n")):
@@ -401,7 +403,7 @@ func (self *HtmlRender) TocHeader(text []byte, level int) {
 	self.toc.WriteString("</a></li>\n")
 }
 
-// func (self *HtmlRender) TocFinalize() {
+// func (self *htmlRender) TocFinalize() {
 // 	for self.currentLevel > 1 {
 // 		self.toc.WriteString("</ul></li>\n")
 // 		self.currentLevel--

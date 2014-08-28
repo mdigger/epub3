@@ -1,14 +1,17 @@
 SOURCE = test
-NAME = md2epub 
+NAME = md2epub
+OUT = out
 
-test: $(NAME)
+test: $(NAME) $(OUT)
 	./$(NAME) $(SOURCE)
-	rm -r out
-	unzip -o $(SOURCE).epub -d out
+	unzip -o $(SOURCE).epub -d $(OUT)
 
 $(NAME): build
 
 build: 
 	go build
+
+$(OUT):
+	rm -rf $(OUT)
 
 .PHONY: test build
