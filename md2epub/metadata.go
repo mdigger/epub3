@@ -131,7 +131,15 @@ func loadMetadata(name string) (pubmeta *epub.Metadata, err error) {
 	// Добавляем уникальные идентификаторы
 	for _, name := range []string{"uuid", "id", "identifier", "doi", "isbn", "issn"} {
 		if value := meta.Get(name); value != "" {
-			pubmeta.Identifier.Add(name, value)
+			var prefix string
+			switch name {
+			case "uuid":
+				prefix = "urn:uuid:"
+			case "doi":
+				prefix = "urn:-doi:"
+				// TODO: Добавить префиксы для других идентификаторов
+			}
+			pubmeta.Identifier.Add(name, prefix+value)
 			fmt.Fprintf(tab, "%s:\t%s\n", strings.ToUpper(name), value)
 		}
 	}
