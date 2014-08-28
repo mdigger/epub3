@@ -1,3 +1,4 @@
+// The Blackfriday Markdown HTML Render with EPUB support
 package markdown
 
 import (
@@ -61,9 +62,9 @@ func (self *htmlRender) BlockCode(out *bytes.Buffer, text []byte, lang string) {
 		if len(elt) == 0 {
 			continue
 		}
-		out.WriteString("<pre lang=\"")
+		out.WriteString("<pre><code class=\"language-")
 		out.WriteString(html.EscapeString(elt))
-		out.WriteString("\"><code>")
+		out.WriteString("\">")
 		count++
 		break
 	}
@@ -344,6 +345,8 @@ func (self *htmlRender) DocumentHeader(out *bytes.Buffer) {
 	out.WriteString("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:epub=\"http://www.idpf.org/2007/ops\"")
 	if self.lang != "" {
 		out.WriteString(" xml:lang=\"")
+		out.WriteString(self.lang)
+		out.WriteString("\" lang=\"")
 		out.WriteString(self.lang)
 		out.WriteRune('"')
 	}
