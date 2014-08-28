@@ -1,5 +1,14 @@
-test:
-	go run *.go test
-	unzip -o test.epub -d out
+SOURCE = test
+NAME = md2epub 
 
-.PHONY: test
+test: $(NAME)
+	./$(NAME) $(SOURCE)
+	rm -r out
+	unzip -o $(SOURCE).epub -d out
+
+$(NAME): build
+
+build: 
+	go build
+
+.PHONY: test build

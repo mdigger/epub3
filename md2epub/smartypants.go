@@ -272,7 +272,7 @@ func smartDoubleQuote(out *bytes.Buffer, smrt *smartypantsData, previousChar byt
 		nextChar = text[1]
 	}
 	if !smartQuoteHelper(out, previousChar, nextChar, 'd', &smrt.inDoubleQuote) {
-		out.WriteRune('"') // &quot;
+		out.WriteString("&quot;")
 	}
 
 	return 0

@@ -8,3 +8,10 @@ testing footnotes.[^a]
 -- testing footnotes.[^a2]
 
 [^a2]: This is the note
+
+	askjdfa;ksdf
+
+	aksdjfalksdjf
+
+
+	akldsjflaksdjf

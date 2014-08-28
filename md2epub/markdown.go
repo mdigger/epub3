@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/russross/blackfriday"
 	"html"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -19,14 +18,14 @@ func init() {
 	extensions |= blackfriday.EXTENSION_FENCED_CODE
 	extensions |= blackfriday.EXTENSION_AUTOLINK
 	extensions |= blackfriday.EXTENSION_STRIKETHROUGH
-	// extensions |= blackfriday.EXTENSION_LAX_HTML_BLOCKS
+	extensions |= blackfriday.EXTENSION_LAX_HTML_BLOCKS
 	extensions |= blackfriday.EXTENSION_SPACE_HEADERS
-	// extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
+	extensions |= blackfriday.EXTENSION_HARD_LINE_BREAK
 	// extensions |= blackfriday.EXTENSION_TAB_SIZE_EIGHT
 	extensions |= blackfriday.EXTENSION_FOOTNOTES
 	extensions |= blackfriday.EXTENSION_NO_EMPTY_LINE_BEFORE_BLOCK
 	extensions |= blackfriday.EXTENSION_HEADER_IDS
-	// extensions |= blackfriday.EXTENSION_TITLEBLOCK
+	extensions |= blackfriday.EXTENSION_TITLEBLOCK
 }
 
 type HtmlRender struct {
@@ -188,9 +187,9 @@ func (self *HtmlRender) Footnotes(out *bytes.Buffer, text func() bool) {
 }
 
 func (self *HtmlRender) FootnoteItem(out *bytes.Buffer, name, text []byte, flags int) {
-	out.WriteString(`<aside id="fn:`)
+	out.WriteString("<aside id=\"fn:")
 	out.Write(slugify(name))
-	out.WriteString(`" epub:type="footnote">`)
+	out.WriteString("\" epub:type=\"footnote\">\n")
 	out.Write(text)
 	out.WriteString("</aside>\n")
 }
@@ -292,11 +291,11 @@ func (self *HtmlRender) StrikeThrough(out *bytes.Buffer, text []byte) {
 
 func (self *HtmlRender) FootnoteRef(out *bytes.Buffer, ref []byte, id int) {
 	slug := slugify(ref)
-	out.WriteString(`<a rel="footnote" href="#fn:`)
+	out.WriteString(`<sup><a rel="footnote" href="#fn:`)
 	out.Write(slug)
 	out.WriteString(`" epub:type="noteref">`)
 	out.WriteString(strconv.Itoa(id))
-	out.WriteString(`</a>`)
+	out.WriteString(`</a></sup>`)
 }
 
 func (self *HtmlRender) Entity(out *bytes.Buffer, entity []byte) {
@@ -359,11 +358,6 @@ func (self *HtmlRender) DocumentHeader(out *bytes.Buffer) {
 	}
 	out.WriteString("</head>\n")
 	out.WriteString("<body>\n")
-	if self.title != "" {
-		out.WriteString("<h1>")
-		out.WriteString(html.EscapeString(self.title))
-		out.WriteString("</h1>\n")
-	}
 }
 
 func (self *HtmlRender) DocumentFooter(out *bytes.Buffer) {
