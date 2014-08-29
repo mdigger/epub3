@@ -5,6 +5,7 @@ import (
 	"path"
 )
 
+// Default file names and mime-type.
 var (
 	RootPath        = "OEBPS"                // Folder with content of publication
 	PackageFilename = "package.opf"          // Package description file name
