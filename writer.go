@@ -15,12 +15,7 @@ import (
 	"time"
 )
 
-var (
-	RootPath        = "OEBPS"
-	EPUBMimeType    = "application/epub+zip"
-	PackageFilename = "package.opf"
-)
-
+// Writer allows you to create publications in epub 3 format.
 type Writer struct {
 	file      *commitfile.File
 	zipWriter *zip.Writer
@@ -30,6 +25,7 @@ type Writer struct {
 	counter   uint
 }
 
+// Create new epub publication.
 func Create(filename string) (writer *Writer, err error) {
 	// Создаем временный файл с публикацией
 	file, err := commitfile.Create(filename)
@@ -66,16 +62,7 @@ func Create(filename string) (writer *Writer, err error) {
 	}
 	enc := xml.NewEncoder(item)
 	enc.Indent("", "\t")
-	err = enc.Encode(&Container{
-		Version: "1.0",
-		Rootfiles: []*RootFile{
-			&RootFile{
-				FullPath:  path.Join(RootPath, PackageFilename),
-				MediaType: "application/oebps-package+xml",
-			},
-		},
-	})
-	if err != nil {
+	if err = enc.Encode(DefaultContainer); err != nil {
 		return nil, err
 	}
 	// Инициализируем объект с описанием публикации
@@ -88,6 +75,7 @@ func Create(filename string) (writer *Writer, err error) {
 	return writer, nil
 }
 
+// AddFile adds the source file to the publication with name filename.
 func (w *Writer) AddFile(sourceFilename, filename string, spine bool, properties ...string) error {
 	file, err := os.Open(sourceFilename)
 	if err != nil {
@@ -104,6 +92,7 @@ func (w *Writer) AddFile(sourceFilename, filename string, spine bool, properties
 	return nil
 }
 
+// Add returns the io.writer to write the data to the publication.
 func (w *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
 	filename = filepath.ToSlash(filename) // Нормализуем имя файла
 	// Проверяем, что файла с таким именем еще нет в публикации.
@@ -171,6 +160,7 @@ func (w *Writer) Add(filename string, spine bool, properties ...string) (io.Writ
 	return w.zipWriter.Create(path.Join(RootPath, filename))
 }
 
+// Close closes the publication and writes metadata.
 func (w *Writer) Close() (err error) {
 	// Закрываем файл по окончании
 	defer w.file.Close()
