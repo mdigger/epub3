@@ -20,7 +20,7 @@ type Package struct {
 	Prefix           string      `xml:"prefix,attr,omitempty"`   // Declaration mechanism for prefixes not reserved by this specification.
 	Lang             string      `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir              string      `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
-	Id               string      `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope
+	ID               string      `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope
 	Metadata         *Metadata   `xml:"metadata"`                // The metadata element encapsulates Publication meta information
 	Manifest         *Manifest   `xml:"manifest"`                // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
 	Spine            *Spine      `xml:"spine"`                   // The spine element defines the default reading order of the EPUB Publication content
@@ -66,11 +66,11 @@ func (self *Metadata) Add(name, id, value string) {
 	case "contributor":
 		self.Contributor.Add(id, value)
 	case "date", "created":
-		self.Date = &Element{Id: id, Value: value}
+		self.Date = &Element{ID: id, Value: value}
 	case "source":
-		self.Source = &Element{Id: id, Value: value}
+		self.Source = &Element{ID: id, Value: value}
 	case "type":
-		self.Type = &Element{Id: id, Value: value}
+		self.Type = &Element{ID: id, Value: value}
 	case "coverage":
 		self.Coverage.Add(id, value)
 	case "description":
@@ -100,7 +100,7 @@ func CreateMetadata(metadata map[string]string) *Metadata {
 
 // Element with optional ID
 type Element struct {
-	Id    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
+	ID    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
 	Value string `xml:",chardata"`
 }
 
@@ -111,7 +111,7 @@ func (self *Elements) Add(id, value string) {
 		elements := make(Elements, 0)
 		self = &elements
 	}
-	*self = append(*self, &Element{Id: id, Value: value})
+	*self = append(*self, &Element{ID: id, Value: value})
 }
 
 // Element with optional ID, xml:lang & dir
@@ -128,7 +128,7 @@ func (self *LangElements) Add(id, value string) {
 		elements := make(LangElements, 0)
 		self = &elements
 	}
-	*self = append(*self, &LangElement{Element: Element{Id: id, Value: value}})
+	*self = append(*self, &LangElement{Element: Element{ID: id, Value: value}})
 }
 
 // The meta element provides a generic means of including package metadata, allowing the expression
@@ -136,7 +136,7 @@ func (self *LangElements) Add(id, value string) {
 type Meta struct {
 	Property string `xml:"property,attr"`           // A property. Refer to Vocabulary Association Mechanisms for more information.
 	Refines  string `xml:"refines,attr,omitempty"`  // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
-	Id       string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
+	ID       string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
 	Scheme   string `xml:"scheme,attr,omitempty"`   // A property data type value indicating the source the value of the element is drawn from.
 	Lang     string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir      string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
@@ -147,7 +147,7 @@ type Meta struct {
 type Link struct {
 	Href      string `xml:"href,attr"`                 // An absolute or relative IRI reference [RFC3987] to a resource.
 	Rel       string `xml:"rel,attr"`                  // A space-separated list of property values.
-	Id        string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
+	ID        string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
 	Refines   string `xml:"refines,attr,omitempty"`    // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
 	MediaType string `xml:"media-type,attr,omitempty"` // A media type [RFC2046] that specifies the type and format of the resource referenced by this link.
 }
@@ -155,13 +155,13 @@ type Link struct {
 // The manifest element provides an exhaustive list of the Publication Resources that constitute
 // the EPUB Publication, each represented by an item element.
 type Manifest struct {
-	Id    string  `xml:"id,attr,omitempty"` // The ID [XML] of this element, which must be unique within the document scope.
+	ID    string  `xml:"id,attr,omitempty"` // The ID [XML] of this element, which must be unique within the document scope.
 	Items []*Item `xml:"item"`              // List of the Publication Resources
 }
 
 // The item element represents a Publication Resource.
 type Item struct {
-	Id           string `xml:"id,attr"`                      // The ID [XML] of this element, which must be unique within the document scope.
+	ID           string `xml:"id,attr"`                      // The ID [XML] of this element, which must be unique within the document scope.
 	Href         string `xml:"href,attr"`                    // An IRI [RFC3987] specifying the location of the Publication Resource described by this item.
 	MediaType    string `xml:"media-type,attr"`              // A media type [RFC2046] that specifies the type and format of the Publication Resource described by this item.
 	Fallback     string `xml:"fallback,attr,omitempty"`      // An IDREF [XML] that identifies the fallback for a non-Core Media Type.
@@ -172,7 +172,7 @@ type Item struct {
 // The spine element defines the default reading order of the EPUB Publication content by defining
 // an ordered list of manifest item references.
 type Spine struct {
-	Id            string     `xml:"id,attr,omitempty"`                         // The ID [XML] of this element, which must be unique within the document scope.
+	ID            string     `xml:"id,attr,omitempty"`                         // The ID [XML] of this element, which must be unique within the document scope.
 	Toc           string     `xml:"toc,attr,omitempty"`                        // An IDREF [XML] that identifies the manifest item that represents the superseded NCX.
 	PageDirection string     `xml:"page-progression-direction,attr,omitempty"` // The global direction in which the Publication content flows. Allowed values are ltr (left-to-right), rtl (right-to-left) and default.
 	ItemRefs      []*ItemRef `xml:"itemref"`                                   // Ordered subset of the Publication Resources listed in the manifest
@@ -182,9 +182,9 @@ type Spine struct {
 // (typically EPUB Content Documents). The order of the itemref elements defines the default
 // reading order of the Publication.
 type ItemRef struct {
-	IdRef      string `xml:"idref,attr"`                // An IDREF [XML] that identifies a manifest item.
+	IDRef      string `xml:"idref,attr"`                // An IDREF [XML] that identifies a manifest item.
 	Linear     string `xml:"linear,attr,omitempty"`     // Specifies whether the referenced content is primary. The value of the attribute must be yes or no. The default value is yes.
-	Id         string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
+	ID         string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
 	Properties string `xml:"properties,attr,omitempty"` // A space-separated list of property values.
 }
 
@@ -204,7 +204,7 @@ type MediaType struct {
 type Collection struct {
 	Lang        string        `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir         string        `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
-	Id          string        `xml:"id,attr,omitempty"`       // The ID [XML] of this element, which must be unique within the document scope.
+	ID          string        `xml:"id,attr,omitempty"`       // The ID [XML] of this element, which must be unique within the document scope.
 	Role        string        `xml:"role,attr"`               // Specifies the nature of the collection
 	Metadata    *Metadata     `xml:"metadata,omitempty"`      // The optional metadata element child of collection is an adaptation of the package metadata element.
 	Collections []*Collection `xml:"collection,omitempty"`    // A collection may define sub-collections through the inclusion of one or more child collection elements.

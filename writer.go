@@ -88,13 +88,13 @@ func Create(filename string) (writer *Writer, err error) {
 	return writer, nil
 }
 
-func (self *Writer) AddFile(sourceFilename, filename string, spine bool, properties ...string) error {
+func (w *Writer) AddFile(sourceFilename, filename string, spine bool, properties ...string) error {
 	file, err := os.Open(sourceFilename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	fileWriter, err := self.Add(filename, spine, properties...)
+	fileWriter, err := w.Add(filename, spine, properties...)
 	if err != nil {
 		return err
 	}
@@ -104,14 +104,14 @@ func (self *Writer) AddFile(sourceFilename, filename string, spine bool, propert
 	return nil
 }
 
-func (self *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
+func (w *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
 	filename = filepath.ToSlash(filename) // Нормализуем имя файла
 	// Проверяем, что файла с таким именем еще нет в публикации.
 	// Иначе возвращаем ошибку.
-	for _, item := range self.manifest {
+	for _, item := range w.manifest {
 		if item.Href == filename {
 			return nil,
-				fmt.Errorf("A file with the name %q has already been added to the publication", filename)
+				fmt.Errorf("a file with the name %q has already been added to the publication", filename)
 		}
 	}
 	// Вычисляем mimetype по расширению файла
@@ -152,30 +152,30 @@ func (self *Writer) Add(filename string, spine bool, properties ...string) (io.W
 			mimetype = "application/octet-stream"
 		}
 	}
-	self.counter++ // Увеличиваем счетчик добавленных файлов
-	id := fmt.Sprintf("id%02x", self.counter)
+	w.counter++ // Увеличиваем счетчик добавленных файлов
+	id := fmt.Sprintf("id%02x", w.counter)
 	// Создаем описание добавляемого файла
 	item := &Item{
-		Id:         id,
+		ID:         id,
 		Href:       filename,
 		MediaType:  mimetype,
 		Properties: strings.Join(properties, " "),
 	}
 	// Добавляем описание в список
-	self.manifest = append(self.manifest, item)
+	w.manifest = append(w.manifest, item)
 	// Если необходимо, то добавляем идентификатор файла в список чтения
 	if spine {
-		self.spine = append(self.spine, &ItemRef{IdRef: id})
+		w.spine = append(w.spine, &ItemRef{IDRef: id})
 	}
 	// Возвращаем writer для записи содержимого файла
-	return self.zipWriter.Create(path.Join(RootPath, filename))
+	return w.zipWriter.Create(path.Join(RootPath, filename))
 }
 
-func (self *Writer) Close() (err error) {
+func (w *Writer) Close() (err error) {
 	// Закрываем файл по окончании
-	defer self.file.Close()
+	defer w.file.Close()
 	// Инициализируем метаданные, если они не были инициализированы раньше
-	metadata := self.Metadata
+	metadata := w.Metadata
 	if metadata == nil {
 		metadata = new(Metadata)
 	}
@@ -186,8 +186,8 @@ func (self *Writer) Close() (err error) {
 	// Получаем идентификатор уникального идентификатора публикации
 	var uid string
 	for _, item := range metadata.Identifier {
-		if item.Id != "" {
-			uid = item.Id
+		if item.ID != "" {
+			uid = item.ID
 			break
 		}
 	}
@@ -222,7 +222,7 @@ func (self *Writer) Close() (err error) {
 		metadata.Title.Add("", "Untitled")
 	}
 	// Сериализуем описание публикации
-	item, err := self.zipWriter.Create(path.Join(RootPath, PackageFilename))
+	item, err := w.zipWriter.Create(path.Join(RootPath, PackageFilename))
 	if err != nil {
 		return err
 	}
@@ -236,10 +236,10 @@ func (self *Writer) Close() (err error) {
 		UniqueIdentifier: uid,
 		Metadata:         metadata,
 		Manifest: &Manifest{
-			Items: self.manifest,
+			Items: w.manifest,
 		},
 		Spine: &Spine{
-			ItemRefs: self.spine,
+			ItemRefs: w.spine,
 		},
 	}
 
@@ -247,10 +247,10 @@ func (self *Writer) Close() (err error) {
 		return err
 	}
 	// Закрываем упаковку
-	if err := self.zipWriter.Close(); err != nil {
+	if err := w.zipWriter.Close(); err != nil {
 		return err
 	}
 	// Отменяем автоудаление файла
-	self.file.Commit()
+	w.file.Commit()
 	return nil
 }
