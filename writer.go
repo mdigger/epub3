@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/mdigger/commitfile"
 	"io"
-	"mime"
 	"os"
 	"path"
 	"path/filepath"
@@ -121,51 +120,13 @@ func (w *Writer) Add(filename string, ct ContentType, properties ...string) (io.
 				fmt.Errorf("a file with the name %q has already been added to the publication", filename)
 		}
 	}
-	// Вычисляем mimetype по расширению файла
-	var mimetype string
-	switch ext := strings.ToLower(path.Ext(filename)); ext {
-	case ".gif":
-		mimetype = "image/gif"
-	case ".jpg", ".jpeg", ".jpe":
-		mimetype = "image/jpeg"
-	case ".png":
-		mimetype = "image/png"
-	case ".svg":
-		mimetype = "image/svg+xml"
-	case ".htm", ".html", ".xhtm", ".xhtml":
-		mimetype = "application/xhtml+xml"
-	case ".ncx":
-		mimetype = "application/x-dtbncx+xml"
-	case ".otf":
-		mimetype = "application/vnd.ms-opentype"
-	case ".woff":
-		mimetype = "application/application/font-woff"
-	case ".smil", ".smi", ".sml":
-		mimetype = "application/smil+xml"
-	case ".pls":
-		mimetype = "application/pls+xml"
-	case ".mp3":
-		mimetype = "audio/mpeg"
-	case ".mp4", ".aac", ".m4a", ".m4v", ".m4b", ".m4p", ".m4r":
-		mimetype = "audio/mp4"
-	case ".css":
-		mimetype = "text/css"
-	case ".js", ".javascript":
-		mimetype = "text/javascript"
-	// case ".json":
-	// 	mimetype = "application/json"
-	default:
-		if mimetype = mime.TypeByExtension(ext); mimetype == "" {
-			mimetype = "application/octet-stream"
-		}
-	}
 	w.counter++ // Увеличиваем счетчик добавленных файлов
 	id := fmt.Sprintf("id%02x", w.counter)
 	// Создаем описание добавляемого файла
 	item := &Item{
 		ID:         id,
 		Href:       filename,
-		MediaType:  mimetype,
+		MediaType:  TypeByFilename(filename),
 		Properties: strings.Join(properties, " "),
 	}
 	// Добавляем описание в список
