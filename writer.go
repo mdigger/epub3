@@ -62,7 +62,16 @@ func Create(filename string) (writer *Writer, err error) {
 	}
 	enc := xml.NewEncoder(item)
 	enc.Indent("", "\t")
-	if err = enc.Encode(DefaultContainer); err != nil {
+	err = enc.Encode(&Container{
+		Version: "1.0",
+		Rootfiles: []*RootFile{
+			&RootFile{
+				FullPath:  path.Join(RootPath, PackageFilename),
+				MediaType: "application/oebps-package+xml",
+			},
+		},
+	})
+	if err != nil {
 		return nil, err
 	}
 	// Инициализируем объект с описанием публикации
