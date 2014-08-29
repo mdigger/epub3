@@ -20,7 +20,7 @@ type Package struct {
 	Manifest         *Manifest   `xml:"manifest"`                // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
 	Spine            *Spine      `xml:"spine"`                   // The spine element defines the default reading order of the EPUB Publication content
 	Bindings         *Bindings   `xml:"bindings,omitempty"`      // The bindings element defines a set of custom handlers for media types not supported by this specification.
-	Collection       *Collection `xml:"collection,omitempty"`    // The collection element defines a related group of resources.
+	Collection       *Collection `xml:"collection,omitempty"`    // The collection element defines a related group of resources. (Added in EPUB 301.)
 }
 
 // Metadata element encapsulates Publication meta information.
@@ -34,8 +34,9 @@ type Metadata struct {
 	Creator     LangElements `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
 	Contributor LangElements `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
 	Date        *Element     `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
-	Source      *Element     `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
-	Type        *Element     `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
+	// Removed in EPUB 301
+	// Source      *Element     `xml:"dc:source"`      // The source element must only be used to specify the identifier of the source publication from which this EPUB Publication is derived.
+	// Type        *Element     `xml:"dc:type"`        // The type element is used to indicate that the given Publication is of a specialized type (e.g., annotations packaged in EPUB format or a dictionary).
 	Coverage    LangElements `xml:"dc:coverage"`
 	Description LangElements `xml:"dc:description"`
 	Format      Elements     `xml:"dc:format"`
@@ -63,10 +64,10 @@ func (meta *Metadata) Add(name, id, value string) {
 		meta.Contributor.Add(id, value)
 	case "date", "created":
 		meta.Date = &Element{ID: id, Value: value}
-	case "source":
-		meta.Source = &Element{ID: id, Value: value}
-	case "type":
-		meta.Type = &Element{ID: id, Value: value}
+	// case "source":
+	// 	meta.Source = &Element{ID: id, Value: value}
+	// case "type":
+	// 	meta.Type = &Element{ID: id, Value: value}
 	case "coverage":
 		meta.Coverage.Add(id, value)
 	case "description":
