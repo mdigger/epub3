@@ -15,6 +15,15 @@ import (
 	"time"
 )
 
+// Content Type
+type ContentType byte
+
+const (
+	ContentTypeMedia     ContentType = iota // Media file
+	ContentTypeAuxiliary                    // Auxiliary content file
+	ContentTypePrimary                      // Primary content file
+)
+
 // Writer allows you to create publications in epub 3 format.
 type Writer struct {
 	file      *commitfile.File
@@ -85,13 +94,13 @@ func Create(filename string) (writer *Writer, err error) {
 }
 
 // AddFile adds the source file to the publication with name filename.
-func (w *Writer) AddFile(sourceFilename, filename string, spine bool, properties ...string) error {
+func (w *Writer) AddFile(sourceFilename, filename string, ct ContentType, properties ...string) error {
 	file, err := os.Open(sourceFilename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	fileWriter, err := w.Add(filename, spine, properties...)
+	fileWriter, err := w.Add(filename, ct, properties...)
 	if err != nil {
 		return err
 	}
@@ -102,7 +111,7 @@ func (w *Writer) AddFile(sourceFilename, filename string, spine bool, properties
 }
 
 // Add returns the io.writer to write the data to the publication.
-func (w *Writer) Add(filename string, spine bool, properties ...string) (io.Writer, error) {
+func (w *Writer) Add(filename string, ct ContentType, properties ...string) (io.Writer, error) {
 	filename = filepath.ToSlash(filename) // Нормализуем имя файла
 	// Проверяем, что файла с таким именем еще нет в публикации.
 	// Иначе возвращаем ошибку.
@@ -143,8 +152,8 @@ func (w *Writer) Add(filename string, spine bool, properties ...string) (io.Writ
 		mimetype = "text/css"
 	case ".js", ".javascript":
 		mimetype = "text/javascript"
-	case ".json":
-		mimetype = "application/json"
+	// case ".json":
+	// 	mimetype = "application/json"
 	default:
 		if mimetype = mime.TypeByExtension(ext); mimetype == "" {
 			mimetype = "application/octet-stream"
@@ -162,8 +171,12 @@ func (w *Writer) Add(filename string, spine bool, properties ...string) (io.Writ
 	// Добавляем описание в список
 	w.manifest = append(w.manifest, item)
 	// Если необходимо, то добавляем идентификатор файла в список чтения
-	if spine {
-		w.spine = append(w.spine, &ItemRef{IDRef: id})
+	if ct > ContentTypeMedia {
+		itemref := &ItemRef{IDRef: id}
+		if ct == ContentTypeAuxiliary {
+			itemref.Linear = "no"
+		}
+		w.spine = append(w.spine, itemref)
 	}
 	// Возвращаем writer для записи содержимого файла
 	return w.zipWriter.Create(path.Join(RootPath, filename))
