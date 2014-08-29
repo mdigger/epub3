@@ -48,38 +48,38 @@ type Metadata struct {
 	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
-func (self *Metadata) Add(name, id, value string) {
+func (meta *Metadata) Add(name, id, value string) {
 	switch name {
 	case "identifier", "id", "uid", "pub-id", "UUID", "DOI", "ISBN", "ISSN":
-		self.Identifier.Add(id, value)
+		meta.Identifier.Add(id, value)
 	case "title":
-		self.Title.Add(id, value)
+		meta.Title.Add(id, value)
 	case "language", "lang":
-		self.Language.Add(id, value)
+		meta.Language.Add(id, value)
 	case "creator", "author":
-		self.Creator.Add(id, value)
+		meta.Creator.Add(id, value)
 	case "contributor":
-		self.Contributor.Add(id, value)
+		meta.Contributor.Add(id, value)
 	case "date", "created":
-		self.Date = &Element{ID: id, Value: value}
+		meta.Date = &Element{ID: id, Value: value}
 	case "source":
-		self.Source = &Element{ID: id, Value: value}
+		meta.Source = &Element{ID: id, Value: value}
 	case "type":
-		self.Type = &Element{ID: id, Value: value}
+		meta.Type = &Element{ID: id, Value: value}
 	case "coverage":
-		self.Coverage.Add(id, value)
+		meta.Coverage.Add(id, value)
 	case "description":
-		self.Description.Add(id, value)
+		meta.Description.Add(id, value)
 	case "format":
-		self.Format.Add(id, value)
+		meta.Format.Add(id, value)
 	case "publisher":
-		self.Publisher.Add(id, value)
+		meta.Publisher.Add(id, value)
 	case "relation":
-		self.Relation.Add(id, value)
+		meta.Relation.Add(id, value)
 	case "rights":
-		self.Rights.Add(id, value)
+		meta.Rights.Add(id, value)
 	case "subject":
-		self.Subject.Add(id, value)
+		meta.Subject.Add(id, value)
 	}
 }
 
@@ -101,12 +101,12 @@ type Element struct {
 
 type Elements []*Element
 
-func (self *Elements) Add(id, value string) {
-	if self == nil {
+func (elem *Elements) Add(id, value string) {
+	if elem == nil {
 		elements := make(Elements, 0)
-		self = &elements
+		elem = &elements
 	}
-	*self = append(*self, &Element{ID: id, Value: value})
+	*elem = append(*elem, &Element{ID: id, Value: value})
 }
 
 // LangElement with optional ID, xml:lang & dir
@@ -118,12 +118,12 @@ type LangElement struct {
 
 type LangElements []*LangElement
 
-func (self *LangElements) Add(id, value string) {
-	if self == nil {
+func (elem *LangElements) Add(id, value string) {
+	if elem == nil {
 		elements := make(LangElements, 0)
-		self = &elements
+		elem = &elements
 	}
-	*self = append(*self, &LangElement{Element: Element{ID: id, Value: value}})
+	*elem = append(*elem, &LangElement{Element: Element{ID: id, Value: value}})
 }
 
 // Meta element provides a generic means of including package metadata, allowing the expression
