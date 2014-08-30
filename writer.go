@@ -14,9 +14,10 @@ import (
 	"time"
 )
 
-// Content Type
+// ContentType describe type of content file.
 type ContentType byte
 
+// Supported types of content file.
 const (
 	ContentTypeMedia     ContentType = iota // Media file
 	ContentTypeAuxiliary                    // Auxiliary content file
