@@ -52,7 +52,7 @@ type Metadata struct {
 // Add adds an attribute to the metadata with the specified name.
 func (meta *Metadata) Add(name, id, value string) {
 	switch name {
-	case "identifier", "id", "uid", "pub-id", "UUID", "DOI", "ISBN", "ISSN":
+	case "identifier", "id", "uid", "pub-id", "uuid", "doi", "isbn", "issn":
 		meta.Identifier.Add(id, value)
 	case "title":
 		meta.Title.Add(id, value)
