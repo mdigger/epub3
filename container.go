@@ -15,8 +15,8 @@ var (
 // DefaultContainer is initialized Container with default properties.
 var DefaultContainer = &Container{
 	Version: "1.0",
-	Rootfiles: []*RootFile{
-		&RootFile{
+	Rootfiles: []RootFile{
+		RootFile{
 			FullPath:  path.Join(RootPath, PackageFilename),
 			MediaType: "application/oebps-package+xml",
 		},
@@ -31,9 +31,9 @@ const (
 
 // Container describes the contents of the container
 type Container struct {
-	XMLName   xml.Name    `xml:"urn:oasis:names:tc:opendocument:xmlns:container container"`
-	Version   string      `xml:"version,attr"`
-	Rootfiles []*RootFile `xml:"rootfiles>rootfile"`
+	XMLName   xml.Name   `xml:"urn:oasis:names:tc:opendocument:xmlns:container container"`
+	Version   string     `xml:"version,attr"`
+	Rootfiles []RootFile `xml:"rootfiles>rootfile"`
 }
 
 // RootFile describes the path to description of publication.

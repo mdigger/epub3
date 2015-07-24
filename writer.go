@@ -2,16 +2,17 @@ package epub
 
 import (
 	"archive/zip"
-	"code.google.com/p/go-uuid/uuid"
 	"encoding/xml"
 	"fmt"
-	"github.com/mdigger/commitfile"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/mdigger/commitfile"
+	"github.com/pborman/uuid"
 )
 
 // ContentType describe type of content file.
@@ -73,8 +74,8 @@ func Create(filename string) (writer *Writer, err error) {
 	enc.Indent("", "\t")
 	err = enc.Encode(&Container{
 		Version: "1.0",
-		Rootfiles: []*RootFile{
-			&RootFile{
+		Rootfiles: []RootFile{
+			RootFile{
 				FullPath:  path.Join(RootPath, PackageFilename),
 				MediaType: "application/oebps-package+xml",
 			},
