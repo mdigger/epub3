@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// Supported MIME types
+// MimeTypes list supported MIME types
 var MimeTypes = map[string]string{
 	".gif":   "image/gif",
 	".jpg":   "image/jpeg",
