@@ -5,14 +5,14 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/mdigger/commitfile"
-	"github.com/pborman/uuid"
+	"github.com/mdigger/uuid"
 )
 
 // ContentType describe type of content file.
@@ -27,7 +27,8 @@ const (
 
 // Writer allows you to create publications in epub 3 format.
 type Writer struct {
-	file      *commitfile.File
+	filename  string
+	file      *os.File
 	zipWriter *zip.Writer
 	Metadata  *Metadata
 	manifest  []*Item
@@ -38,7 +39,7 @@ type Writer struct {
 // Create new epub publication.
 func Create(filename string) (writer *Writer, err error) {
 	// Создаем временный файл с публикацией
-	file, err := commitfile.Create(filename)
+	file, err := ioutil.TempFile("", "~epub") // commitfile.Create(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +47,7 @@ func Create(filename string) (writer *Writer, err error) {
 	defer func() {
 		if err != nil {
 			file.Close()
+			os.Remove(file.Name())
 		}
 	}()
 	// Инициализируем упаковку в архив
@@ -86,6 +88,7 @@ func Create(filename string) (writer *Writer, err error) {
 	}
 	// Инициализируем объект с описанием публикации
 	writer = &Writer{
+		filename:  filename,
 		file:      file,
 		zipWriter: zipWriter,
 		manifest:  make([]*Item, 0, 10),
@@ -148,7 +151,14 @@ func (w *Writer) Add(filename string, ct ContentType, properties ...string) (io.
 // Close closes the publication and writes metadata.
 func (w *Writer) Close() (err error) {
 	// Закрываем файл по окончании
-	defer w.file.Close()
+	defer func() {
+		w.file.Close()
+		if err != nil {
+			os.Remove(w.file.Name())
+		} else {
+			err = os.Rename(w.file.Name(), w.filename)
+		}
+	}()
 	// Инициализируем метаданные, если они не были инициализированы раньше
 	metadata := w.Metadata
 	if metadata == nil {
@@ -167,7 +177,7 @@ func (w *Writer) Close() (err error) {
 		}
 	}
 	if uid == "" {
-		metadata.Add("uuid", "uuid", "urn:uuid:"+uuid.New())
+		metadata.Add("uuid", "uuid", "urn:uuid:"+uuid.New().String())
 		uid = "uuid"
 	}
 	// Добавляем дату модификации
@@ -225,7 +235,5 @@ func (w *Writer) Close() (err error) {
 	if err := w.zipWriter.Close(); err != nil {
 		return err
 	}
-	// Отменяем автоудаление файла
-	w.file.Commit()
 	return nil
 }
