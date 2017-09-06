@@ -93,6 +93,7 @@ func Create(filename string) (writer *Writer, err error) {
 		zipWriter: zipWriter,
 		manifest:  make([]*Item, 0, 10),
 		spine:     make([]*ItemRef, 0, 10),
+		Metadata:  new(Metadata),
 	}
 	return writer, nil
 }
