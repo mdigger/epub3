@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/mdigger/uuid"
 )
 
 // ContentType describe type of content file.
@@ -151,7 +149,7 @@ func (w *Writer) Close() (err error) {
 		}
 	}
 	if uid == "" {
-		metadata.Add("uuid", "uuid", "urn:uuid:"+uuid.New().String())
+		metadata.Add("uuid", "uuid", "urn:uuid:"+NewUUID())
 		uid = "uuid"
 	}
 	var setTime bool
