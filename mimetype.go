@@ -2,7 +2,7 @@ package epub
 
 import (
 	"mime"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -37,7 +37,7 @@ var MimeTypes = map[string]string{
 
 // TypeByFilename returns the MIME type associated with the file name.
 func TypeByFilename(filename string) (mimetype string) {
-	ext := strings.ToLower(path.Ext(filename))
+	ext := strings.ToLower(filepath.Ext(filename))
 	if mimetype = MimeTypes[ext]; mimetype != "" {
 		return mimetype
 	}

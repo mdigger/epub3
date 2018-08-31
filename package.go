@@ -26,24 +26,24 @@ type Package struct {
 // Metadata element encapsulates Publication meta information.
 type Metadata struct {
 	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
-	// Requered Elements
+	// Required Elements
 	Identifier Elements     `xml:"dc:identifier"` // The [DCMES] identifier element contains a single identifier associated with the EPUB Publication, such as a UUID, DOI, ISBN or ISSN.
 	Title      LangElements `xml:"dc:title"`      // The [DCMES] title element represents an instance of a name given to the EPUB Publication.
 	Language   Elements     `xml:"dc:language"`   // The [DCMES] language element specifies the language of the Publication content.
 	// DCMES Optional Elements
-	Creator     LangElements `xml:"dc:creator"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
-	Contributor LangElements `xml:"dc:contributor"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
-	Date        *Element     `xml:"dc:date"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
-	Coverage    LangElements `xml:"dc:coverage"`
-	Description LangElements `xml:"dc:description"`
-	Format      Elements     `xml:"dc:format"`
-	Publisher   LangElements `xml:"dc:publisher"`
-	Relation    LangElements `xml:"dc:relation"`
-	Rights      LangElements `xml:"dc:rights"`
-	Subject     LangElements `xml:"dc:subject"`
+	Creator     LangElements `xml:"dc:creator,omitempty"`     // The creator element represents the name of a person, organization, etc. responsible for the creation of the content of a Publication. The role property can be attached to the element to indicate the function the creator played in the creation of the content.
+	Contributor LangElements `xml:"dc:contributor,omitempty"` // The contributor element is used to represent the name of a person, organization, etc. that played a secondary role in the creation of the content of a Publication.
+	Date        *Element     `xml:"dc:date,omitempty"`        // The date element must only be used to define the publication date of the EPUB Publication. The publication date is not the same as the last modified date (the last time the content was changed), which must be included using the [DCTERMS] modified property.
+	Coverage    LangElements `xml:"dc:coverage,omitempty"`
+	Description LangElements `xml:"dc:description,omitempty"`
+	Format      Elements     `xml:"dc:format,omitempty"`
+	Publisher   LangElements `xml:"dc:publisher,omitempty"`
+	Relation    LangElements `xml:"dc:relation,omitempty"`
+	Rights      LangElements `xml:"dc:rights,omitempty"`
+	Subject     LangElements `xml:"dc:subject,omitempty"`
 	// Meta
-	Meta []*Meta `xml:"meta"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
-	Link []*Link `xml:"link"` // The link element is used to associate resources with a Publication, such as metadata records.
+	Meta []*Meta `xml:"meta,omitempty"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
+	Link []*Link `xml:"link,omitempty"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
 // Add adds an attribute to the metadata with the specified name.
@@ -101,7 +101,7 @@ type Elements []*Element
 // Add creates and adds a new element to the collection with the specified attributes.
 func (elem *Elements) Add(id, value string) {
 	if elem == nil {
-		elements := make(Elements, 0)
+		var elements = make(Elements, 0)
 		elem = &elements
 	}
 	*elem = append(*elem, &Element{ID: id, Value: value})

@@ -13,7 +13,7 @@ func Example() {
 	}
 	defer file.Close()
 	file.Metadata.Title.Add("", "Test")
-	err = file.AddFile("example.html", "example.html", epub.CTPrimary)
+	err = file.AddFile("example.html", "example.html", epub.Primary)
 	if err != nil {
 		log.Fatal(err)
 	}

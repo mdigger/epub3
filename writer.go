@@ -17,9 +17,9 @@ type ContentType byte
 
 // Supported types of content file.
 const (
-	CTMedia     ContentType = iota // Media file
-	CTAuxiliary                    // Auxiliary content file
-	CTPrimary                      // Primary content file
+	Primary   ContentType = iota // Primary content file
+	Auxiliary                    // Auxiliary content file
+	Media                        // Media file
 )
 
 // Writer allows you to create publications in epub 3 format.
@@ -33,7 +33,7 @@ type Writer struct {
 }
 
 // Create new epub publication.
-func Create(filename string) (writer *Writer, err error) {
+func Create(filename string) (*Writer, error) {
 	file, err := os.Create(filename)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func Create(filename string) (writer *Writer, err error) {
 			os.Remove(file.Name())
 		}
 	}()
-	zipWriter := zip.NewWriter(file)
+	var zipWriter = zip.NewWriter(file)
 	var item io.Writer
 	item, err = zipWriter.CreateHeader(&zip.FileHeader{
 		Name:   "mimetype",
@@ -77,7 +77,7 @@ func Create(filename string) (writer *Writer, err error) {
 	if err != nil {
 		return nil, err
 	}
-	writer = &Writer{
+	var writer = &Writer{
 		file:      file,
 		zipWriter: zipWriter,
 		manifest:  make([]*Item, 0, 10),
@@ -87,7 +87,7 @@ func Create(filename string) (writer *Writer, err error) {
 	return writer, nil
 }
 
-// AddFile adds the source file to the publication with name filename.
+// AddFile adds the source file to the publication.
 func (w *Writer) AddFile(sourceFilename, filename string, ct ContentType,
 	properties ...string) error {
 	file, err := os.Open(sourceFilename)
@@ -98,7 +98,7 @@ func (w *Writer) AddFile(sourceFilename, filename string, ct ContentType,
 	return w.Add(filename, ct, file, properties...)
 }
 
-// Add returns the io.writer to write the data to the publication.
+// Add adds data to the publication.
 func (w *Writer) Add(filename string, ct ContentType, r io.Reader,
 	properties ...string) error {
 	filename = filepath.ToSlash(filename)
@@ -117,9 +117,9 @@ func (w *Writer) Add(filename string, ct ContentType, r io.Reader,
 		Properties: strings.Join(properties, " "),
 	}
 	w.manifest = append(w.manifest, item)
-	if ct > CTMedia {
+	if ct > Media {
 		itemref := &ItemRef{IDRef: id}
-		if ct == CTAuxiliary {
+		if ct == Auxiliary {
 			itemref.Linear = "no"
 		}
 		w.spine = append(w.spine, itemref)
