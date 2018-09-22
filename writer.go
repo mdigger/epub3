@@ -117,7 +117,7 @@ func (w *Writer) Add(filename string, ct ContentType, r io.Reader,
 		Properties: strings.Join(properties, " "),
 	}
 	w.manifest = append(w.manifest, item)
-	if ct > Media {
+	if ct < Media {
 		itemref := &ItemRef{IDRef: id}
 		if ct == Auxiliary {
 			itemref.Linear = "no"
