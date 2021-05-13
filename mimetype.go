@@ -35,8 +35,8 @@ var MimeTypes = map[string]string{
 	".js":    "text/javascript",
 }
 
-// TypeByFilename returns the MIME type associated with the file name.
-func TypeByFilename(filename string) (mimetype string) {
+// typeByName returns the MIME type associated with the file name.
+func typeByName(filename string) (mimetype string) {
 	ext := strings.ToLower(filepath.Ext(filename))
 	if mimetype = MimeTypes[ext]; mimetype != "" {
 		return mimetype

@@ -2,15 +2,72 @@ package epub
 
 import (
 	"archive/zip"
-	"encoding/xml"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 )
+
+// Default metadata settings.
+var (
+	DefaultLang  = Element{Value: "en"}
+	DefaultTitle = ElementLang{Value: "Untitled"}
+)
+
+// Writer allows you to create publications in epub 3 format.
+type Writer struct {
+	Metadata
+	zipWriter *zip.Writer
+	manifest  []Item
+	spine     []ItemRef
+	counter   uint
+}
+
+// New return new epub publication Writer.
+func New(w io.Writer) (wr *Writer, err error) {
+	zipWriter := zip.NewWriter(w) // create zip-compressor
+	// close zip writer on error
+	defer func() {
+		if err != nil {
+			zipWriter.Close()
+		}
+	}()
+
+	// write mimetype header
+	item, err := zipWriter.CreateHeader(&zip.FileHeader{
+		Name:   "mimetype",
+		Method: zip.Store,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if _, err = io.WriteString(item, "application/epub+zip"); err != nil {
+		return nil, err
+	}
+
+	// write container file
+	if err = addXMLData(zipWriter,
+		"META-INF/container.xml",
+		Container{
+			Version: "1.0",
+			Rootfiles: []RootFile{
+				{
+					FullPath:  path.Join(RootPath, PackageFilename),
+					MediaType: "application/oebps-package+xml",
+				},
+			},
+		}); err != nil {
+		return nil, err
+	}
+
+	// return initializer Writer
+	return &Writer{
+		zipWriter: zipWriter,
+		manifest:  make([]Item, 0, 20),
+		spine:     make([]ItemRef, 0, 20),
+	}, nil
+}
 
 // ContentType describe type of content file.
 type ContentType byte
@@ -22,111 +79,56 @@ const (
 	Media                        // Media file
 )
 
-// Writer allows you to create publications in epub 3 format.
-type Writer struct {
-	*Metadata
-	zipWriter *zip.Writer
-	manifest  []*Item
-	spine     []*ItemRef
-	counter   uint
-}
-
-// New return new epub publication Writer.
-func New(w io.Writer) (*Writer, error) {
-	zipWriter := zip.NewWriter(w) // create zip-compressor
-
-	// write mimetype header
-	item, err := zipWriter.CreateHeader(&zip.FileHeader{
-		Name:   "mimetype",
-		Method: zip.Store,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if _, err = io.WriteString(item, EPUBMimeType); err != nil {
-		return nil, err
-	}
-
-	// write container file
-	item, err = zipWriter.Create(path.Join(METAINF, CONTAINER))
-	if err != nil {
-		return nil, err
-	}
-	if _, err = io.WriteString(item, xml.Header); err != nil {
-		return nil, err
-	}
-	enc := xml.NewEncoder(item)
-	enc.Indent("", "\t")
-	err = enc.Encode(DefaultContainer)
-	if err != nil {
-		return nil, err
-	}
-
-	// return initializer Writer
-	writer := &Writer{
-		zipWriter: zipWriter,
-		manifest:  make([]*Item, 0, 10),
-		spine:     make([]*ItemRef, 0, 10),
-		Metadata:  new(Metadata),
-	}
-	return writer, nil
-}
-
-// AddContentFile adds the source file to the publication.
-func (w *Writer) AddContentFile(sourceFilename, filename string, ct ContentType,
-	properties ...string) error {
-	file, err := os.Open(sourceFilename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	return w.AddContent(filename, ct, file, properties...)
-}
-
 // AddContent adds data to the publication.
-func (w *Writer) AddContent(filename string, ct ContentType, r io.Reader,
-	properties ...string) error {
-	filename = filepath.ToSlash(filename)
+func (w *Writer) AddContent(r io.Reader, name string, ct ContentType, properties ...string) error {
+	name = filepath.ToSlash(name) // normalize file name
+
+	// check if already added
 	for _, item := range w.manifest {
-		if item.Href == filename {
+		if item.Href == name {
 			return fmt.Errorf("a file with the name %q has already been added"+
-				" to the publication", filename)
+				" to the publication", name)
 		}
 	}
+
+	// generate file id and add to manifest
 	w.counter++
 	id := fmt.Sprintf("id%02x", w.counter)
-	item := &Item{
+	w.manifest = append(w.manifest, Item{
 		ID:         id,
-		Href:       filename,
-		MediaType:  TypeByFilename(filename),
+		Href:       name,
+		MediaType:  typeByName(name),
 		Properties: strings.Join(properties, " "),
-	}
-	w.manifest = append(w.manifest, item)
+	})
+
+	// if it content file than add to spine
 	if ct < Media {
-		itemref := &ItemRef{IDRef: id}
+		itemref := ItemRef{IDRef: id}
 		if ct == Auxiliary {
 			itemref.Linear = "no"
 		}
 		w.spine = append(w.spine, itemref)
 	}
-	fileWriter, err := w.zipWriter.Create(path.Join(RootPath, filename))
+
+	// write file to publication
+	file, err := w.zipWriter.Create(path.Join(RootPath, name))
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(fileWriter, r)
+	_, err = io.Copy(file, r)
+
 	return err
 }
 
 // Close closes the publication and writes metadata.
-func (w *Writer) Close() (err error) {
-	metadata := w.Metadata
-	if metadata == nil {
-		metadata = new(Metadata)
-	}
+func (w *Writer) Close() error {
+	metadata := w.Metadata // copy metadata
+	// add DC namespace if not defined
 	if metadata.DC == "" {
 		metadata.DC = "http://purl.org/dc/elements/1.1/"
 	}
 
+	// set global publication UID
 	var uid string
 	for _, item := range metadata.Identifier {
 		if item.ID != "" {
@@ -135,59 +137,57 @@ func (w *Writer) Close() (err error) {
 		}
 	}
 	if uid == "" {
-		metadata.AddMeta("uuid", "uuid", "urn:uuid:"+NewUUID())
+		// UID not defined
+		metadata.Identifier = append(metadata.Identifier,
+			Element{ID: "uuid", Value: newUUID()})
 		uid = "uuid"
 	}
 
+	// set modified time
 	var setTime bool
 	for _, item := range metadata.Meta {
 		if item.Property == "dcterms:modified" {
-			item.Value = time.Now().UTC().Format(time.RFC3339)
+			item.Value = now()
 			setTime = true
 			break
 		}
 	}
 	if !setTime {
-		if metadata.Meta == nil {
-			metadata.Meta = make([]*Meta, 0, 1)
-		}
-		metadata.Meta = append(metadata.Meta, &Meta{
+		// modified time not set
+		metadata.Meta = append(metadata.Meta, Meta{
 			Property: "dcterms:modified",
-			Value:    time.Now().UTC().Format(time.RFC3339),
+			Value:    now(),
 		})
 	}
 
+	// add default language if not defined
 	if len(metadata.Language) == 0 {
-		metadata.Language.Add("", "en")
+		metadata.Language = []Element{DefaultLang}
 	}
 
+	// add default title if not defined
 	if len(metadata.Title) == 0 {
-		metadata.Title.Add("", "Untitled")
+		metadata.Title = []ElementLang{DefaultTitle}
 	}
 
-	item, err := w.zipWriter.Create(path.Join(RootPath, PackageFilename))
-	if err != nil {
-		return err
-	}
-	if _, err := io.WriteString(item, xml.Header); err != nil {
-		return err
-	}
-	opf := &Package{
-		Version:          "3.0",
-		UniqueIdentifier: uid,
-		Metadata:         metadata,
-		Manifest: &Manifest{
-			Items: w.manifest,
-		},
-		Spine: &Spine{
-			ItemRefs: w.spine,
-		},
-	}
-	enc := xml.NewEncoder(item)
-	enc.Indent("", "\t")
-	if err = enc.Encode(opf); err != nil {
+	// create & write publication package file
+	if err := addXMLData(w.zipWriter,
+		path.Join(RootPath, PackageFilename),
+		Package{
+			Version:          "3.0",
+			UniqueIdentifier: uid,
+			Metadata:         metadata,
+			Manifest: Manifest{
+				Items: w.manifest,
+			},
+			Spine: Spine{
+				ItemRefs: w.spine,
+			},
+		}); err != nil {
+		w.zipWriter.Close() // close zip writer on error
 		return err
 	}
 
+	// close publication
 	return w.zipWriter.Close()
 }

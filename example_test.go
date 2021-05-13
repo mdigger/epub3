@@ -20,8 +20,16 @@ func Example() {
 	}
 	defer pub.Close()
 
-	pub.Title.Add("", "Test")
-	err = pub.AddContentFile("example.html", "example.html", epub.Primary)
+	pub.Title = append(pub.Title, epub.ElementLang{
+		ID: "iii", Value: "Test", Lang: "en"})
+
+	content, err := os.Open("example.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer content.Close()
+
+	err = pub.AddContent(content, "example.html", epub.Primary)
 	if err != nil {
 		log.Fatal(err)
 	}
