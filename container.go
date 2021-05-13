@@ -16,7 +16,7 @@ var (
 var DefaultContainer = &Container{
 	Version: "1.0",
 	Rootfiles: []RootFile{
-		RootFile{
+		{
 			FullPath:  path.Join(RootPath, PackageFilename),
 			MediaType: "application/oebps-package+xml",
 		},
@@ -29,7 +29,7 @@ const (
 	CONTAINER = "container.xml" // Predefined container file name
 )
 
-// Container describes the contents of the container
+// Container describes the contents of the container.
 type Container struct {
 	XMLName   xml.Name   `xml:"urn:oasis:names:tc:opendocument:xmlns:container container"`
 	Version   string     `xml:"version,attr"`
