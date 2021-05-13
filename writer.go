@@ -62,6 +62,7 @@ func New(w io.Writer) (*Writer, error) {
 		return nil, err
 	}
 
+	// return initializer Writer
 	writer := &Writer{
 		zipWriter: zipWriter,
 		manifest:  make([]*Item, 0, 10),
