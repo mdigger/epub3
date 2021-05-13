@@ -1,5 +1,10 @@
 package epub
 
+import (
+	"fmt"
+	"time"
+)
+
 // Metadata element encapsulates Publication meta information.
 type Metadata struct {
 	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
@@ -38,16 +43,53 @@ type ElementLang struct {
 }
 
 // AddTitle new publication title.
-func (m *Metadata) AddTitle(name, id, lang string) {
-	m.Title = append(m.Title, ElementLang{Value: name, ID: id, Lang: lang})
+func (m *Metadata) AddTitle(name string) {
+	m.Title = append(m.Title, ElementLang{Value: name})
 }
 
 // AddCreator new publication author.
-func (m *Metadata) AddCreator(name, id, lang string) {
-	m.Creator = append(m.Creator, ElementLang{Value: name, ID: id, Lang: lang})
+func (m *Metadata) AddCreator(name string) {
+	m.Creator = append(m.Creator, ElementLang{Value: name})
 }
 
 // SetLanguage set publication language.
 func (m *Metadata) SetLanguage(lang string) {
 	m.Language = []Element{{Value: lang}}
+}
+
+// AddSubject add publication subject.
+func (m *Metadata) AddSubject(name string) {
+	m.Subject = append(m.Subject, ElementLang{Value: name})
+}
+
+// AddDescription set publication description.
+func (m *Metadata) AddDescription(description string) {
+	m.Description = append(m.Description, ElementLang{Value: description})
+}
+
+// SetDate set publication date (not last modified).
+func (m *Metadata) SetDate(date string) (err error) {
+	// check data format
+	var dateTime time.Time
+	for _, layout := range []string{"2006-01-02", "2006-01", "2006", time.RFC3339} {
+		if dateTime, err = time.Parse(layout, date); err == nil {
+			break
+		}
+	}
+	if dateTime.IsZero() {
+		return fmt.Errorf("bad date %v", date)
+	}
+
+	// set publication date
+	m.Date = &Element{Value: date}
+
+	return nil
+}
+
+// SetUUID set publication identifier as UUID.
+func (m *Metadata) SetUUID(id string) {
+	if id == "" {
+		id = newUUID() // generate random UUID if not defined
+	}
+	m.Identifier = []Element{{Value: id, ID: "uuid"}}
 }
