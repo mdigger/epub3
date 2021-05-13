@@ -1,7 +1,7 @@
 epub3
 =====
 
-[![GoDoc](https://pkg.go.dev/badge/github.com/mdigger/epub3)](https://pkg.go.dev/github.com/mdigger/epub3)
+[![Go Reference](https://pkg.go.dev/badge/github.com/mdigger/epub3.svg)](https://pkg.go.dev/github.com/mdigger/epub3)
 
 The EPUB specification is a distribution and interchange format standard for digital publications and documents. EPUB defines a means of representing, packaging and encoding structured and semantically enhanced Web content — including HTML5, CSS, SVG, images, and other resources — for distribution in a single-file format.
 
