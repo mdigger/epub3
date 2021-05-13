@@ -20,8 +20,8 @@ func Example() {
 	}
 	defer pub.Close()
 
-	pub.Title = append(pub.Title, epub.ElementLang{
-		ID: "iii", Value: "Test", Lang: "en"})
+	pub.AddTitle("Test", "", "en")
+	pub.AddCreator("Author", "", "")
 
 	content, err := os.Open("example.html")
 	if err != nil {

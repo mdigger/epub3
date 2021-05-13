@@ -36,3 +36,18 @@ type ElementLang struct {
 	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
 }
+
+// AddTitle new publication title.
+func (m *Metadata) AddTitle(name, id, lang string) {
+	m.Title = append(m.Title, ElementLang{Value: name, ID: id, Lang: lang})
+}
+
+// AddCreator new publication author.
+func (m *Metadata) AddCreator(name, id, lang string) {
+	m.Creator = append(m.Creator, ElementLang{Value: name, ID: id, Lang: lang})
+}
+
+// SetLanguage set publication language.
+func (m *Metadata) SetLanguage(lang string) {
+	m.Language = []Element{{Value: lang}}
+}
