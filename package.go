@@ -46,8 +46,8 @@ type Metadata struct {
 	Link []*Link `xml:"link,omitempty"` // The link element is used to associate resources with a Publication, such as metadata records.
 }
 
-// Add adds an attribute to the metadata with the specified name.
-func (meta *Metadata) Add(name, id, value string) {
+// AddMeta adds an attribute to the metadata with the specified name.
+func (meta *Metadata) AddMeta(name, id, value string) {
 	switch name {
 	case "identifier", "id", "uid", "pub-id", "uuid", "doi", "isbn", "issn":
 		meta.Identifier.Add(id, value)
@@ -84,18 +84,18 @@ func CreateMetadata(metadata map[string]string) *Metadata {
 		DC: "http://purl.org/dc/elements/1.1/",
 	}
 	for item, value := range metadata {
-		data.Add(item, item, value)
+		data.AddMeta(item, item, value)
 	}
 	return data
 }
 
-// Element with optional ID
+// Element with optional ID.
 type Element struct {
 	ID    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
 	Value string `xml:",chardata"`
 }
 
-// Elements is a collection of Element
+// Elements is a collection of Element.
 type Elements []*Element
 
 // Add creates and adds a new element to the collection with the specified attributes.
@@ -107,7 +107,7 @@ func (elem *Elements) Add(id, value string) {
 	*elem = append(*elem, &Element{ID: id, Value: value})
 }
 
-// LangElement with optional ID, xml:lang & dir
+// LangElement with optional ID, xml:lang & dir.
 type LangElement struct {
 	Element
 	Lang string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants

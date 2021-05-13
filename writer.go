@@ -24,29 +24,19 @@ const (
 
 // Writer allows you to create publications in epub 3 format.
 type Writer struct {
-	file      *os.File
+	*Metadata
 	zipWriter *zip.Writer
-	Metadata  *Metadata
 	manifest  []*Item
 	spine     []*ItemRef
 	counter   uint
 }
 
 // Create new epub publication.
-func Create(filename string) (*Writer, error) {
-	file, err := os.Create(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err != nil {
-			file.Close()
-			os.Remove(file.Name())
-		}
-	}()
-	var zipWriter = zip.NewWriter(file)
-	var item io.Writer
-	item, err = zipWriter.CreateHeader(&zip.FileHeader{
+func Create(w io.Writer) (*Writer, error) {
+	zipWriter := zip.NewWriter(w) // create zip-compressor
+
+	// write mimetype header
+	item, err := zipWriter.CreateHeader(&zip.FileHeader{
 		Name:   "mimetype",
 		Method: zip.Store,
 	})
@@ -56,6 +46,8 @@ func Create(filename string) (*Writer, error) {
 	if _, err = io.WriteString(item, EPUBMimeType); err != nil {
 		return nil, err
 	}
+
+	// write container file
 	item, err = zipWriter.Create(path.Join(METAINF, CONTAINER))
 	if err != nil {
 		return nil, err
@@ -63,22 +55,14 @@ func Create(filename string) (*Writer, error) {
 	if _, err = io.WriteString(item, xml.Header); err != nil {
 		return nil, err
 	}
-	var enc = xml.NewEncoder(item)
+	enc := xml.NewEncoder(item)
 	enc.Indent("", "\t")
-	err = enc.Encode(&Container{
-		Version: "1.0",
-		Rootfiles: []RootFile{
-			RootFile{
-				FullPath:  path.Join(RootPath, PackageFilename),
-				MediaType: "application/oebps-package+xml",
-			},
-		},
-	})
+	err = enc.Encode(DefaultContainer)
 	if err != nil {
 		return nil, err
 	}
-	var writer = &Writer{
-		file:      file,
+
+	writer := &Writer{
 		zipWriter: zipWriter,
 		manifest:  make([]*Item, 0, 10),
 		spine:     make([]*ItemRef, 0, 10),
@@ -87,19 +71,19 @@ func Create(filename string) (*Writer, error) {
 	return writer, nil
 }
 
-// AddFile adds the source file to the publication.
-func (w *Writer) AddFile(sourceFilename, filename string, ct ContentType,
+// AddContentFile adds the source file to the publication.
+func (w *Writer) AddContentFile(sourceFilename, filename string, ct ContentType,
 	properties ...string) error {
 	file, err := os.Open(sourceFilename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	return w.Add(filename, ct, file, properties...)
+	return w.AddContent(filename, ct, file, properties...)
 }
 
-// Add adds data to the publication.
-func (w *Writer) Add(filename string, ct ContentType, r io.Reader,
+// AddContent adds data to the publication.
+func (w *Writer) AddContent(filename string, ct ContentType, r io.Reader,
 	properties ...string) error {
 	filename = filepath.ToSlash(filename)
 	for _, item := range w.manifest {
@@ -109,8 +93,8 @@ func (w *Writer) Add(filename string, ct ContentType, r io.Reader,
 		}
 	}
 	w.counter++
-	var id = fmt.Sprintf("id%02x", w.counter)
-	var item = &Item{
+	id := fmt.Sprintf("id%02x", w.counter)
+	item := &Item{
 		ID:         id,
 		Href:       filename,
 		MediaType:  TypeByFilename(filename),
@@ -134,13 +118,14 @@ func (w *Writer) Add(filename string, ct ContentType, r io.Reader,
 
 // Close closes the publication and writes metadata.
 func (w *Writer) Close() (err error) {
-	var metadata = w.Metadata
+	metadata := w.Metadata
 	if metadata == nil {
 		metadata = new(Metadata)
 	}
 	if metadata.DC == "" {
 		metadata.DC = "http://purl.org/dc/elements/1.1/"
 	}
+
 	var uid string
 	for _, item := range metadata.Identifier {
 		if item.ID != "" {
@@ -149,9 +134,10 @@ func (w *Writer) Close() (err error) {
 		}
 	}
 	if uid == "" {
-		metadata.Add("uuid", "uuid", "urn:uuid:"+NewUUID())
+		metadata.AddMeta("uuid", "uuid", "urn:uuid:"+NewUUID())
 		uid = "uuid"
 	}
+
 	var setTime bool
 	for _, item := range metadata.Meta {
 		if item.Property == "dcterms:modified" {
@@ -169,13 +155,15 @@ func (w *Writer) Close() (err error) {
 			Value:    time.Now().UTC().Format(time.RFC3339),
 		})
 	}
+
 	if len(metadata.Language) == 0 {
 		metadata.Language.Add("", "en")
 	}
+
 	if len(metadata.Title) == 0 {
 		metadata.Title.Add("", "Untitled")
 	}
-	defer w.file.Close()
+
 	item, err := w.zipWriter.Create(path.Join(RootPath, PackageFilename))
 	if err != nil {
 		return err
@@ -183,9 +171,7 @@ func (w *Writer) Close() (err error) {
 	if _, err := io.WriteString(item, xml.Header); err != nil {
 		return err
 	}
-	var enc = xml.NewEncoder(item)
-	enc.Indent("", "\t")
-	var opf = &Package{
+	opf := &Package{
 		Version:          "3.0",
 		UniqueIdentifier: uid,
 		Metadata:         metadata,
@@ -196,9 +182,11 @@ func (w *Writer) Close() (err error) {
 			ItemRefs: w.spine,
 		},
 	}
-
+	enc := xml.NewEncoder(item)
+	enc.Indent("", "\t")
 	if err = enc.Encode(opf); err != nil {
 		return err
 	}
+
 	return w.zipWriter.Close()
 }

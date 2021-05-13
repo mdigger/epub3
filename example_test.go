@@ -2,18 +2,26 @@ package epub_test
 
 import (
 	"log"
+	"os"
 
 	epub "github.com/mdigger/epub3"
 )
 
 func Example() {
-	file, err := epub.Create("test.epub")
+	file, err := os.Create("test.epub")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	file.Metadata.Title.Add("", "Test")
-	err = file.AddFile("example.html", "example.html", epub.Primary)
+
+	pub, err := epub.Create(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pub.Close()
+
+	pub.Title.Add("", "Test")
+	err = pub.AddContentFile("example.html", "example.html", epub.Primary)
 	if err != nil {
 		log.Fatal(err)
 	}
