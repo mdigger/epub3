@@ -31,8 +31,8 @@ type Writer struct {
 	counter   uint
 }
 
-// Create new epub publication.
-func Create(w io.Writer) (*Writer, error) {
+// New return new epub publication Writer.
+func New(w io.Writer) (*Writer, error) {
 	zipWriter := zip.NewWriter(w) // create zip-compressor
 
 	// write mimetype header

@@ -14,7 +14,7 @@ func Example() {
 	}
 	defer file.Close()
 
-	pub, err := epub.Create(file)
+	pub, err := epub.New(file)
 	if err != nil {
 		log.Fatal(err)
 	}
