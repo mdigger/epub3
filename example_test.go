@@ -20,16 +20,15 @@ func Example() {
 	}
 	defer pub.Close()
 
-	pub.AddTitle("Test", "", "en")
-	pub.AddCreator("Author", "", "")
+	pub.AddTitle("Test")
+	pub.AddAuthor("Author")
 
 	content, err := os.Open("example.html")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer content.Close()
-
 	err = pub.AddContent(content, "example.html", epub.Primary)
+	content.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
