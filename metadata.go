@@ -89,7 +89,7 @@ func (m *Metadata) SetDate(date string) (err error) {
 // SetUUID set publication identifier as UUID.
 func (m *Metadata) SetUUID(id string) {
 	if id == "" {
-		id = newUUID() // generate random UUID if not defined
+		id = NewUUID() // generate random UUID if not defined
 	}
 	m.Identifier = []Element{{Value: id, ID: "uuid"}}
 }
