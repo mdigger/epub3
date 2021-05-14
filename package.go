@@ -10,17 +10,16 @@ import (
 // metadata and resource information.
 type Package struct {
 	XMLName          xml.Name    `xml:"http://www.idpf.org/2007/opf package"`
-	Version          string      `xml:"version,attr"`                 // Specifies the EPUB specification version to which the Publication conforms
-	UniqueIdentifier string      `xml:"unique-identifier,attr"`       // An IDREF that identifies the dc:identifier element that provides the package's preferred, or primary, identifier
-	Prefix           string      `xml:"prefix,attr,omitempty"`        // Declaration mechanism for prefixes not reserved by this specification.
-	Lang             string      `xml:"xml:lang,attr,omitempty"`      // Specifies the language used in the contents and attribute values of the carrying element and its descendants
-	Dir              string      `xml:"dir,attr,omitempty"`           // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
-	ID               string      `xml:"id,attr,omitempty"`            // The ID of this element, which must be unique within the document scope
-	Metadata         Metadata    `xml:"metadata"`                     // The metadata element encapsulates Publication meta information
-	Manifest         Manifest    `xml:"manifest"`                     // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
-	Spine            Spine       `xml:"spine"`                        // The spine element defines the default reading order of the EPUB Publication content
-	Bindings         []MediaType `xml:"mediaType>bindings,omitempty"` // The bindings element defines a set of custom handlers for media types not supported by this specification.
-	Collection       *Collection `xml:"collection,omitempty"`         // The collection element defines a related group of resources. (Added in EPUB 301.)
+	Version          string      `xml:"version,attr"`            // Specifies the EPUB specification version to which the Publication conforms
+	UniqueIdentifier string      `xml:"unique-identifier,attr"`  // An IDREF that identifies the dc:identifier element that provides the package's preferred, or primary, identifier
+	Prefix           string      `xml:"prefix,attr,omitempty"`   // Declaration mechanism for prefixes not reserved by this specification.
+	Lang             string      `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Dir              string      `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	ID               string      `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope
+	Metadata         Metadata    `xml:"metadata"`                // The metadata element encapsulates Publication meta information
+	Manifest         Manifest    `xml:"manifest"`                // The manifest element provides an exhaustive list of the Publication Resources that constitute the EPUB Publication, each represented by an item element.
+	Spine            Spine       `xml:"spine"`                   // The spine element defines the default reading order of the EPUB Publication content
+	Collection       *Collection `xml:"collection,omitempty"`    // The collection element defines a related group of resources. (Added in EPUB 301.)
 }
 
 // Manifest element provides an exhaustive list of the Publication Resources that constitute
@@ -57,12 +56,6 @@ type ItemRef struct {
 	Linear     string `xml:"linear,attr,omitempty"`     // Specifies whether the referenced content is primary. The value of the attribute must be yes or no. The default value is yes.
 	ID         string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
 	Properties string `xml:"properties,attr,omitempty"` // A space-separated list of property values.
-}
-
-// MediaType element associates a Foreign Resource media type with a handler XHTML Content Document.
-type MediaType struct {
-	MediaType string `xml:"media-type,attr"` // A media type [RFC2046] that specifies the type and format of the resource to be handled.
-	Handler   string `xml:"handler,attr"`    // An IDREF [XML] that identifies the manifest XHTML Content Document to be invoked to handle content of the type specified in this element
 }
 
 // Collection element defines a related group of resources.
