@@ -2,11 +2,13 @@ package epub
 
 import (
 	"archive/zip"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // Default metadata settings.
@@ -139,7 +141,7 @@ func (w *Writer) Close() error {
 	if uid == "" {
 		// UID not defined
 		metadata.Identifier = append(metadata.Identifier,
-			Element{ID: "uuid", Value: newUUID()})
+			Element{ID: "uuid", Value: NewUUID()})
 		uid = "uuid"
 	}
 
@@ -190,4 +192,28 @@ func (w *Writer) Close() error {
 
 	// close publication
 	return w.zipWriter.Close()
+}
+
+// now return string wih current time i RFC 3339 format.
+func now() string {
+	return time.Now().UTC().Format(time.RFC3339)
+}
+
+// addXMLData serialize & write publication data as XML file.
+func addXMLData(w *zip.Writer, name string, data interface{}) error {
+	// create new publication file
+	item, err := w.Create(name)
+	if err != nil {
+		return err
+	}
+
+	// add XML header
+	if _, err := io.WriteString(item, xml.Header); err != nil {
+		return err
+	}
+
+	// serialize XML data to file
+	enc := xml.NewEncoder(item)
+	enc.Indent("", "\t")
+	return enc.Encode(data)
 }
