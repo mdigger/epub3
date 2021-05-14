@@ -21,7 +21,7 @@ func Example() {
 	defer pub.Close()
 
 	pub.AddTitle("Test")
-	pub.AddAuthor("Author")
+	pub.AddAuthors("Author")
 
 	content, err := os.Open("example.html")
 	if err != nil {

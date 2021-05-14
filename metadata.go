@@ -48,23 +48,27 @@ func (m *Metadata) AddTitle(name string) {
 }
 
 // AddAuthor new publication author.
-func (m *Metadata) AddAuthor(name string) {
-	m.Creator = append(m.Creator, ElementLang{Value: name})
+func (m *Metadata) AddAuthors(names ...string) {
+	for _, name := range names {
+		m.Creator = append(m.Creator, ElementLang{Value: name})
+	}
 }
 
-// AddSubject add publication subject.
-func (m *Metadata) AddSubject(name string) {
-	m.Subject = append(m.Subject, ElementLang{Value: name})
+// AddSubjects add publication subject.
+func (m *Metadata) AddSubjects(names ...string) {
+	for _, name := range names {
+		m.Subject = append(m.Subject, ElementLang{Value: name})
+	}
 }
 
-// AddDescription set publication description.
-func (m *Metadata) AddDescription(description string) {
-	m.Description = append(m.Description, ElementLang{Value: description})
+// SetDescription set publication description.
+func (m *Metadata) SetDescription(description string) {
+	m.Description = []ElementLang{{Value: description}}
 }
 
-// AddRights set publication rights description.
-func (m *Metadata) AddRights(rights string) {
-	m.Rights = append(m.Rights, ElementLang{Value: rights})
+// SetRights set publication rights description.
+func (m *Metadata) SetRights(rights string) {
+	m.Rights = []ElementLang{{Value: rights}}
 }
 
 // SetDate set publication date (not last modified).
