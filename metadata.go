@@ -32,16 +32,16 @@ type Metadata struct {
 
 // Element with optional ID.
 type Element struct {
-	Value string `xml:",chardata"`
 	ID    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
+	Value string `xml:",chardata"`
 }
 
 // ElementLang with optional ID, xml:lang & dir.
 type ElementLang struct {
-	Value string `xml:",chardata"`
 	ID    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
-	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
 	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Value string `xml:",chardata"`
 }
 
 // AddTitle new publication title.
@@ -113,20 +113,20 @@ func (m *Metadata) SetLang(lang string) {
 // Meta element provides a generic means of including package metadata, allowing the expression
 // of primary metadata about the package or content and refinement of that metadata.
 type Meta struct {
-	Value    string `xml:",chardata"`
-	Property string `xml:"property,attr"`           // A property. Refer to Vocabulary Association Mechanisms for more information.
 	Refines  string `xml:"refines,attr,omitempty"`  // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
-	ID       string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
+	Property string `xml:"property,attr"`           // A property. Refer to Vocabulary Association Mechanisms for more information.
 	Scheme   string `xml:"scheme,attr,omitempty"`   // A property data type value indicating the source the value of the element is drawn from.
-	Lang     string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	ID       string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
 	Dir      string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Lang     string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+	Value    string `xml:",chardata"`
 }
 
 // Link element is used to associate resources with a Publication, such as metadata records.
 type Link struct {
-	Href      string `xml:"href,attr"`                 // An absolute or relative IRI reference [RFC3987] to a resource.
-	Rel       string `xml:"rel,attr"`                  // A space-separated list of property values.
-	ID        string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
 	Refines   string `xml:"refines,attr,omitempty"`    // Identifies the expression or resource augmented by this element. The value of the attribute must be a relative IRI [RFC3987] pointing to the resource or element it describes.
+	Rel       string `xml:"rel,attr"`                  // A space-separated list of property values.
+	Href      string `xml:"href,attr"`                 // An absolute or relative IRI reference [RFC3987] to a resource.
+	ID        string `xml:"id,attr,omitempty"`         // The ID [XML] of this element, which must be unique within the document scope.
 	MediaType string `xml:"media-type,attr,omitempty"` // A media type [RFC2046] that specifies the type and format of the resource referenced by this link.
 }
