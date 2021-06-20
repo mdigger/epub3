@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -17,13 +16,6 @@ var (
 	DefaultLang  = Element{Value: "en"}
 	DefaultTitle = ElementLang{Value: "Untitled"}
 )
-
-// Set default language from environment is defined.
-func init() {
-	if lang := os.Getenv("LANG"); lang != "" {
-		DefaultLang = Element{Value: lang}
-	}
-}
 
 // Writer allows you to create publications in epub 3 format.
 type Writer struct {
@@ -96,8 +88,7 @@ func (w *Writer) AddContent(r io.Reader, name string, ct ContentType, properties
 	// check if already added
 	for _, item := range w.manifest {
 		if item.Href == name {
-			return fmt.Errorf("a file with the name %q has already been added"+
-				" to the publication", name)
+			return fmt.Errorf("a file with the name %q has already been added to the publication", name)
 		}
 	}
 
