@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// MimeTypes list supported MIME types.
+// MimeTypes list supported MIME types by file extension.
 var MimeTypes = map[string]string{
 	".gif":   "image/gif",
 	".jpg":   "image/jpeg",
@@ -36,13 +36,16 @@ var MimeTypes = map[string]string{
 }
 
 // typeByName returns the MIME type associated with the file name.
-func typeByName(filename string) (mimetype string) {
+func typeByName(filename string) string {
 	ext := strings.ToLower(filepath.Ext(filename))
-	if mimetype = MimeTypes[ext]; mimetype != "" {
+
+	if mimetype, ok := MimeTypes[ext]; ok {
 		return mimetype
 	}
-	if mimetype = mime.TypeByExtension(ext); mimetype != "" {
+
+	if mimetype := mime.TypeByExtension(ext); mimetype != "" {
 		return mimetype
 	}
+
 	return "application/octet-stream"
 }

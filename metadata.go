@@ -5,6 +5,20 @@ import (
 	"time"
 )
 
+// Element with optional ID.
+type Element struct {
+	Value string `xml:",chardata"`
+	ID    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
+}
+
+// ElementLang with optional ID, xml:lang & dir.
+type ElementLang struct {
+	Value string `xml:",chardata"`
+	ID    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
+	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
+	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
+}
+
 // Metadata element encapsulates Publication meta information.
 type Metadata struct {
 	DC string `xml:"xmlns:dc,attr"` // “http://purl.org/dc/elements/1.1/”
@@ -28,20 +42,6 @@ type Metadata struct {
 	// Meta
 	Meta []Meta `xml:"meta,omitempty"` // The meta element provides a generic means of including package metadata, allowing the expression of primary metadata about the package or content and refinement of that metadata.
 	Link []Link `xml:"link,omitempty"` // The link element is used to associate resources with a Publication, such as metadata records.
-}
-
-// Element with optional ID.
-type Element struct {
-	ID    string `xml:"id,attr,omitempty"` // The ID of this element, which must be unique within the document scope.
-	Value string `xml:",chardata"`
-}
-
-// ElementLang with optional ID, xml:lang & dir.
-type ElementLang struct {
-	ID    string `xml:"id,attr,omitempty"`       // The ID of this element, which must be unique within the document scope.
-	Dir   string `xml:"dir,attr,omitempty"`      // Specifies the base text direction of the content and attribute values of the carrying element and its descendants.
-	Lang  string `xml:"xml:lang,attr,omitempty"` // Specifies the language used in the contents and attribute values of the carrying element and its descendants
-	Value string `xml:",chardata"`
 }
 
 // AddTitle new publication title.
